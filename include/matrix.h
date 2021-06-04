@@ -14,6 +14,14 @@
 #include <Wire.h>
 #include <SPI.h>
 
-extern void matrix_setup();
-extern void matrix_loop();
+
+class MTX {
+    public:
+    void init();
+    void handle();
+    private:
+    void time();
+    void start();
+};
+
 #endif

@@ -6,7 +6,7 @@
  * построение интерфейса осуществляется в файлах 'interface.*'
  *
  */
-
+MTX myMtx;
 #ifdef USE_FTP
   #include "ftpSrv.h"
 #endif
@@ -23,14 +23,14 @@ void setup() {
   #ifdef USE_FTP
       ftp_setup(); // запуск ftp-сервера
   #endif
-matrix_setup();
+  myMtx.init();
 }
 
 
 // MAIN loop
 void loop() {
   embui.handle();
-  matrix_loop();
+  myMtx.handle();
 // LOG(printf_P, PSTR("Matrix was initialized \n"));
 #ifdef USE_FTP
     ftp_loop(); // цикл обработки событий фтп-сервера
