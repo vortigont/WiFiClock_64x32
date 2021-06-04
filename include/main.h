@@ -4,5 +4,6 @@
 #include <Arduino.h>
 #include "config.h"
 #include "EmbUI.h"
+#include "matrix.h"
 
 #endif

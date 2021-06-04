@@ -23,12 +23,15 @@ void setup() {
   #ifdef USE_FTP
       ftp_setup(); // запуск ftp-сервера
   #endif
+matrix_setup();
 }
 
 
 // MAIN loop
 void loop() {
   embui.handle();
+  matrix_loop();
+// LOG(printf_P, PSTR("Matrix was initialized \n"));
 #ifdef USE_FTP
     ftp_loop(); // цикл обработки событий фтп-сервера
 #endif
