@@ -6,5 +6,10 @@
 #  endif
 #endif
 
+#ifndef TIMEOUT
+#define TIMEOUT       (500U)                   // таймаут сохранения конфигурации эффекта, по умолчанию - 20 секунд
+#endif
+
+
 
 #endif

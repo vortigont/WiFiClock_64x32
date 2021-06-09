@@ -3,116 +3,224 @@
 #include "image.h"
 #include "main.h"
 
-extern MTX myMtx;
+MTX matrix;
 
-RGBmatrixPanel matrix(MTX_A, MTX_B, MTX_C, MTX_D, MTX_CLK, MTX_LAT, MTX_OE, true, 64);
 
-uint16_t myRED = matrix.Color333(5,0,0);
-uint16_t myGREEN = matrix.Color333(0,5,0);
-uint16_t myBLUE = matrix.Color333(0,0,5);
-uint16_t myWHITE = matrix.Color333(7, 7,7);
-uint16_t myYELLOW = matrix.Color333(2,2,0);
-uint16_t myCYAN = matrix.Color333(0,5,5);
-uint16_t myMAGENTA = matrix.Color333(5,0,5);
-uint16_t myShadow = matrix.Color333(2,0,5);
-uint16_t myROSE = matrix.Color333(5,0,2);
-uint16_t myBLACK = matrix.Color333(0,0,0);
-
-bool mtxStarted = false;
-
-bool showPoints;
 void MTX::init()
 {
-    matrix.begin();
-    // matrix.cp437(true);
-    matrix.setRotation(0); 
-    matrix.setTextWrap(false);
-    matrix.fillScreen(0);
+    begin();
+    // cp437(true);
+    setRotation(0); 
+    setTextWrap(false);
+    fillScreen(0);
     LOG(printf_P, PSTR("Matrix was initialized \n"));
-}
+  }
 
 void MTX::handle()
 {
-    if (!mtxStarted) myMtx.start();
-    else {
-        myMtx.time();
-    }
-
-// myMtx.time();
+  if (!mtxStarted) start();
+  else {
+    if (nightMode) getNightMode();
+    else getNightMode();
 }
-
+if(NIGHTMODE_TIME == getHour()) nightMode = true; 
+}
 
 void MTX::start()
 {
-    static unsigned long starting_timer;
-    static int l;
-    if (!l){
-    matrix.setTextColor(myCYAN);
-    matrix.setCursor(2, 0);
-    matrix.print("WiFi");
-    // matrix.swapBuffers(true);
-}
-        if (!embui.sysData.wifi_sta && l < 6){
-        if (starting_timer + 1000 < millis()){
-            matrix.print(".");
-            matrix.swapBuffers(true);
-            #ifdef MP3PLAYER
-            if(playAlert) dfPlayer.playFolder(wifi_connecting);
-            #endif
-            l++;
-            starting_timer = millis();
-                LOG(printf_P, PSTR("Matrix timer \n"));
-            }
-        }
-        else {
-            #ifdef MP3PLAYER
-            if(playAlert) dfPlayer.playFolder(wifi_connected);
-            #endif
-            matrix.fillScreen(0);
-            matrix.setCursor(2, 8);
-            matrix.setFont();
-            if (starting_timer + 2000 > millis()){
-            matrix.print(embui.sysData.wifi_sta ? "WiFi OK" : "WiFi AP");
-            matrix.setCursor(1, 10);
-            matrix.setFont(&TomThumb);
-            matrix.println(embui.sysData.wifi_sta ? WiFi.localIP().toString() : "192.168.4.1");
-            matrix.swapBuffers(true);
-                }
-            matrix.fillScreen(0);
-            if (starting_timer + 2000 < millis()) matrix.drawRGBBitmap(18, 3, image_data_Image30, 26, 26);
-            if (starting_timer + 3000 < millis()) matrix.drawRGBBitmap(18, 3, image_data_Image31, 26, 26);
-            if (starting_timer + 4000 < millis()) matrix.drawRGBBitmap(18, 3, image_data_Image32, 26, 26);
-            if (starting_timer + 5000 < millis()) matrix.drawRGBBitmap(18, 3, image_data_Image33, 26, 26);
-            if (starting_timer + 6000 < millis()) matrix.drawRGBBitmap(18, 3, image_data_Image34, 26, 26);
-            if (starting_timer + 7000 < millis()) matrix.drawRGBBitmap(18, 3, image_data_Image35, 26, 26);
-            if (starting_timer + 8000 < millis()) matrix.drawRGBBitmap(18, 3, image_data_Image36, 26, 26);
-            matrix.swapBuffers(false);
-            matrix.fillScreen(0);
-
-
-           if (starting_timer + 10000 < millis()) mtxStarted = true;
+  static unsigned long wait_handlers;
+  if (wait_handlers + animInterv > millis())
+    return;
+  wait_handlers = millis();
+  static unsigned long showIp;
+  static int l;
+  if (l==0){
+  setTextColor(myCYAN);
+  setCursor(2, 0);
+  setFont();
+  print("WiFi");
+  }
+  if (!embui.sysData.wifi_sta && l < 6){
+  print(".");
+  swapBuffers(true);
+  #ifdef MP3PLAYER
+  if(playAlert) dfPlayer.playFolder(wifi_connecting);
+  #endif
+  LOG(printf_P, PSTR("WiFi connecting... \n"));
+  }
+  else {
+    fillScreen(0);
+    #ifdef MP3PLAYER
+    if(playAlert) dfPlayer.playFolder(wifi_connected);
+    #endif
+    if (l <=6) {
+      showIp = millis();
+      setFont();
+      setCursor(2, 0);
+      println(embui.sysData.wifi_sta ? "WiFi OK" : "WiFi AP");
+      setCursor(1, 10);
+      setFont(&TomThumb);
+      println(embui.sysData.wifi_sta ? WiFi.localIP().toString() : "192.168.4.1");
+      swapBuffers(true);
+      l++;
     }
+    if (showIp + 2000 > millis()) return;
+    switch (l){
+    case 7: drawRGBBitmap(18, 3, image_data_Image30, 26, 26);
+    break;
+    case 8: drawRGBBitmap(18, 3, image_data_Image31, 26, 26);
+    break;
+    case 9: drawRGBBitmap(18, 3, image_data_Image32, 26, 26);
+    break;
+    case 10: drawRGBBitmap(18, 3, image_data_Image33, 26, 26);
+    break;
+    case 11: drawRGBBitmap(18, 3, image_data_Image34, 26, 26);
+    break;
+    case 12: drawRGBBitmap(18, 3, image_data_Image35, 26, 26);
+    break;
+    case 13: drawRGBBitmap(18, 3, image_data_Image36, 26, 26);
+    break;
+    }
+    l++;
+    swapBuffers(true);
+    if (l==15) mtxStarted = true;
+  }
+}
+ 
+//Цикл вывода времени
+String MTX::getTime(){
+
+  const tm* t = localtime(embui.timeProcessor.now());  // Определяем для вывода времени 
+  static char dispTime[5]; 
+  if (embui.timeProcessor.isDirtyTime()) sprintf (dispTime, (showPoints ? "--:--" : "-- --"));
+  else sprintf (dispTime, (showPoints ? "%02d:%02d" : "%02d %02d"), t->tm_hour, t->tm_min);
+  showPoints=!showPoints;
+  return String(dispTime);
+
+}
+
+void MTX::getHome(){
+  drawLine(55, 8, 63, 8, myBLACK);
+  if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
+      drawLine(55, 8, 63, 8, myBLACK);
+      drawLine(55, 7, 63, 7, myBLACK);
+      // scroll_text(24, frameDelay, ("Подготовка к ночному режиму"));
+  }
+
+}
+
+void MTX::getClock(){
 
 }
 
 
-void MTX::time(){
-        const tm* t = localtime(embui.timeProcessor.now());  // Определяем для вывода времени 
-    char dispTime[5]; 
-    sprintf (dispTime, (showPoints ? "%02d:%02d" : "%02d %02d"), t->tm_hour, t->tm_min);
-    matrix.setCursor(21, 9);
-    matrix.setTextSize(1);
-    matrix.setFont(&TomThumb);
-    matrix.setTextColor(myBLUE);
-    if(embui.timeProcessor.isDirtyTime()) matrix.println((showPoints) ? "--:--" : "-- --");
-    else matrix.println(String(dispTime));
-    matrix.swapBuffers(true);
-    matrix.setFont();
-    matrix.fillScreen(0);
-    static unsigned long wait_handlers;
-    if (wait_handlers + 999U > millis())
-      return;
-    wait_handlers = millis();
-    showPoints=!showPoints;
+void MTX::scrollText(uint8_t ypos, unsigned long scroll_delay, String text)
+{
+  static unsigned long wait_handlers;
+  if (wait_handlers + scroll_delay > millis())
+    return;
+  wait_handlers = millis();
+  uint16_t text_length = text.length();
 
+    for (int xpos = MATRIX_WIDTH; xpos > -(MATRIX_WIDTH + text_length * 5); xpos--)
+  {
+    setFont();
+    setCursor(xpos, ypos);                //
+    fillRect(0, ypos, 64, 8, myBLACK);    //
+    setTextColor(myMAGENTA);              //
+    print(utf8rus(text));                 //
+    setFont();                            //
+    delay(scroll_delay);                         //
+    // yield();
+  }
+  
+}
+
+
+void MTX::getWeather(){
+  static unsigned long wait_handlers;
+  static unsigned long goodMorning;
+  if (wait_handlers + 999U > millis())
+  return;
+  wait_handlers = millis();
+  if (showMorning) {
+    fillRect(0, 0, 64, 32, myBLACK);
+    drawRGBBitmap(0, 0, image_data_ytro2, 64, 32);
+    swapBuffers(false);
+    fillScreen(0);
+    goodMorning = millis();
+    showMorning = false;
+  }
+  if (goodMorning + 5000U > millis()) return;
+  setFont();
+  setCursor(21, 9);
+  setTextSize(1);
+  setFont(&TomThumb);
+  setTextColor(myRED);
+  println(getTime());
+  swapBuffers(true);
+  fillScreen(0);
+  }
+
+
+void MTX::getNightMode(){
+  static unsigned long wait_handlers;
+  static unsigned long goodNight;
+  static bool l;
+  if (wait_handlers + 999U > millis())
+    return;
+  wait_handlers = millis();
+  if (!l){
+  fillRect(0, 0, 64, 32, myBLACK); 
+  drawRGBBitmap(0, 0, image_data_noch2, 64, 32);
+  swapBuffers(false); 
+  l++;
+  goodNight=millis();
+  }
+  if (goodNight + 3000 > millis()) return;
+  fillRect(0, 0, 64, 32, myBLACK);    
+  fillScreen(0);
+  setFont();
+  setCursor(8, 16);
+  setTextSize(1);
+  setFont(&FreeSansBold9pt7b);
+  setTextColor(Color333(0,0,2));
+  println(getTime());
+  swapBuffers(true);
+  if (MORNING_TIME == getHour()) showMorning = true;
+}
+
+
+// ================================ Вывод Русских Букв
+String MTX::utf8rus(String source)
+{
+  int i,k;
+  String target;
+  unsigned char n;
+  char m[2] = { '0', '\0' };
+
+  k = source.length(); i = 0;
+
+  while (i < k) {
+    n = source[i]; i++;
+
+    if (n >= 0xC0) {
+      switch (n) {
+        case 0xD0: {
+          n = source[i]; i++;
+          if (n == 0x81) { n = 0xA8; break; }
+          if (n >= 0x90 && n <= 0xBF) n = n + 0x30;
+          break;
+        }
+        case 0xD1: {
+          n = source[i]; i++;
+          if (n == 0x91) { n = 0xB8; break; }
+          if (n >= 0x80 && n <= 0x8F) n = n + 0x70;
+          break;
+        }
+      }
+    }
+    m[0] = n; target = target + String(m);
+  }
+return target;
 }

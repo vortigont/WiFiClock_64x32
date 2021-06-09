@@ -1,15 +1,17 @@
 
 // Main headers
 #include "main.h"
+#include "matrix.h"
 // #include <SPIFFSEditor.h>
 /**
  * построение интерфейса осуществляется в файлах 'interface.*'
  *
  */
-MTX myMtx;
 #ifdef USE_FTP
   #include "ftpSrv.h"
 #endif
+
+extern MTX matrix;
 
 // MAIN Setup
 void setup() {
@@ -23,14 +25,14 @@ void setup() {
   #ifdef USE_FTP
       ftp_setup(); // запуск ftp-сервера
   #endif
-  myMtx.init();
+  matrix.init();
 }
 
 
 // MAIN loop
 void loop() {
   embui.handle();
-  myMtx.handle();
+  matrix.handle();
 // LOG(printf_P, PSTR("Matrix was initialized \n"));
 #ifdef USE_FTP
     ftp_loop(); // цикл обработки событий фтп-сервера
