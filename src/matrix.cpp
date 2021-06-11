@@ -146,10 +146,11 @@ void MTX::getWeather(){
   setFont(&TomThumb);
   setTextColor(myRED);
   println(getTime());
-  swapBuffers(true);
   setFont();
   getImage();
+  swapBuffers(true);
   fillScreen(0);
+
 
 
 }
@@ -170,7 +171,7 @@ void MTX::getImage()
       case 232: // Гроза с сильным дождиком
        
      if (switchAnim) drawRGBBitmap(10, 14, image_data_Image14, 10, 10); else drawRGBBitmap(10, 14, image_data_Image15, 10, 10);
-     swapBuffers(true);
+
      
         break;
       case 300: // Слабая морось
@@ -187,7 +188,7 @@ void MTX::getImage()
       case 613: // Мокрый дождь
      
      if (switchAnim) drawRGBBitmap(10, 14, image_data_Image10, 10, 10); else drawRGBBitmap(10, 14, image_data_Image11, 10, 10);
-     swapBuffers(true);
+
      
         break;
       case 313: // Ливень, дождь и изморозь
@@ -199,7 +200,7 @@ void MTX::getImage()
       case 522: // Сильный пролевной дождь
      
      if (switchAnim) drawRGBBitmap(10, 14, image_data_Image8, 10, 10); else drawRGBBitmap(10, 14, image_data_Image9, 10, 10);
-     swapBuffers(true);
+
      
        break;
       
@@ -208,7 +209,7 @@ void MTX::getImage()
       case 622: // Сильный снегопад
       
      if (switchAnim) drawRGBBitmap(10, 14, image_data_Image4, 10, 10); else drawRGBBitmap(10, 14, image_data_Image5, 10, 10);
-     swapBuffers(true);
+
      
       case 600: //легкий снег
       case 610: // Снег с дождем
@@ -220,7 +221,7 @@ void MTX::getImage()
       case 621: // Ливень и снег
       
      if (switchAnim) drawRGBBitmap(10, 14, image_data_Image6, 10, 10); else drawRGBBitmap(10, 14, image_data_Image7, 10, 10);
-     swapBuffers(true);
+
      
        break;
       case 701: // Туман
@@ -236,18 +237,18 @@ void MTX::getImage()
       //int zik = 0;
       //for (int zik = 0; zik < 100; zik ++){
      if (switchAnim) drawRGBBitmap(10, 14, image_data_Image2, 10, 10); else drawRGBBitmap(10, 14, image_data_Image3, 10, 10);
-     swapBuffers(true);
+
      
       //}
         break;
       case 800: // Ясно, чистое небо
       if (getHour() < 21 && getHour() > 6){ 
      if (switchAnim) drawRGBBitmap(10, 14, image_data_Image, 10, 10); else drawRGBBitmap(10, 14, image_data_Image1, 10, 10);
-     swapBuffers(true);
+
      
       }else{
       if (switchAnim) drawRGBBitmap(10, 14, image_data_Image20, 10, 10); else drawRGBBitmap(10, 14, image_data_Image21, 10, 10);
-     swapBuffers(true);
+
      
          
       }
@@ -257,18 +258,18 @@ void MTX::getImage()
       case 803: // Облачно 80%
       if (getHour() < 21 && getHour() > 6){
       if (switchAnim) drawRGBBitmap(10, 14, image_data_Image16, 10, 10); else drawRGBBitmap(10, 14, image_data_Image17, 10, 10);
-      swapBuffers(true);
+ 
     
       }else{
       if (switchAnim) drawRGBBitmap(10, 14, image_data_Image18, 10, 10); else drawRGBBitmap(10, 14, image_data_Image19, 10, 10);
-     swapBuffers(true);
+
       
       }
        break;
       case 804: // Пасмурно 100%
        
      if (switchAnim) drawRGBBitmap(10, 14, image_data_Image12, 10, 10); else drawRGBBitmap(10, 14, image_data_Image13, 10, 10);
-     swapBuffers(true);
+
      
         break;
   }
@@ -285,7 +286,7 @@ void MTX::getImage()
       case 232: // Гроза с сильным дождиком
        
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image14, 10, 10); else drawRGBBitmap(44, 14, image_data_Image15, 10, 10);
-     swapBuffers(true);
+
      
         break;
       case 300: // Слабая морось
@@ -302,7 +303,7 @@ void MTX::getImage()
       case 613: // Мокрый дождь
      
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image10, 10, 10); else drawRGBBitmap(44, 14, image_data_Image11, 10, 10);
-     swapBuffers(true);
+
      
         break;
       case 313: // Ливень, дождь и изморозь
@@ -314,7 +315,7 @@ void MTX::getImage()
       case 522: // Сильный пролевной дождь
      
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image8, 10, 10); else drawRGBBitmap(44, 14, image_data_Image9, 10, 10);
-     swapBuffers(true);
+
      
        break;
       
@@ -323,7 +324,7 @@ void MTX::getImage()
       case 622: // Сильный снегопад
       
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image4, 10, 10); else drawRGBBitmap(44, 14, image_data_Image5, 10, 10);
-     swapBuffers(true);
+
      
       case 600: //легкий снег
       case 610: // Снег с дождем
@@ -335,7 +336,7 @@ void MTX::getImage()
       case 621: // Ливень и снег
       
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image6, 10, 10); else drawRGBBitmap(44, 14, image_data_Image7, 10, 10);
-     swapBuffers(true);
+
      
        break;
       case 701: // Туман
@@ -351,14 +352,14 @@ void MTX::getImage()
       //int zik = 0;
       //for (int zik = 0; zik < 100; zik ++){
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image2, 10, 10); else drawRGBBitmap(44, 14, image_data_Image3, 10, 10);
-     swapBuffers(true);
+
      
       //}
         break;
       case 800: // Ясно, чистое небо
        
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image, 10, 10); else drawRGBBitmap(44, 14, image_data_Image1, 10, 10);
-     swapBuffers(true);
+
      
       
        break;
@@ -367,13 +368,13 @@ void MTX::getImage()
       case 803: // Облачно 80%
       
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image16, 10, 10); else drawRGBBitmap(44, 14, image_data_Image17, 10, 10);
-     swapBuffers(true);
+
     
        break;
       case 804: // Пасмурно 100%
        
      if (switchAnim) drawRGBBitmap(44, 14, image_data_Image12, 10, 10); else drawRGBBitmap(44, 14, image_data_Image13, 10, 10);
-     swapBuffers(true);
+
      
         break;
   }
