@@ -3,84 +3,72 @@
 #include "weather.h"
 #include "EmbUI.h"
 
-WTR myWth;
+Weather weather;
+
+
+
+void Weather::handle(){
+  static uint32_t timer;
+  static bool weatherCheck;
+  if (!weatherCheck && millis() > 5000) {
+    getToday();
+    getTomorrow();
+    weatherCheck=true;
+  }
+  if (millis() - timer >= 600*1000) {
+    timer += 600*1000;
+    do {
+      if (timer < 600*1000) break; 
+      getToday();
+      getTomorrow();
+    } while (timer < millis() - 600*1000);
+  }
+}
 
 //===============================================================================================================================//
 //                              ПОГОДА                                                //
 //===============================================================================================================================//
-void WTH::get() {
-  if(weatherKey0=="" || !displayForecast) return;
+void Weather::getToday() {
+  // if(weatherKey0=="" || !displayForecast) return;
   if(embui.sysData.wifi_sta) {
     updateForecast++;
-    return;
-  }
-  if(printCom) {
-    //Serial.println("======== START GET WEATHER FROM WEATHERBIT.IO =========");
+    // return;
+    LOG(printf_P, PSTR("======== START GET WEATHER FROM WEATHERBIT.IO =========\n"));
     
-  }  
   
-  location_name = "";
-  location_region = "";
-  location_country = "";
-  location_localtime = "";
-  location_temp = 0;
-  location_app_temp = 0;
-  location_rh = 0;
-  location_pres = 0;
-  location_wind_spd = 0;
-  location_wind_cdir_full = "";
-  location_sunrise = "";
-  location_sunset = "";
-  location_clouds = 0;
-  location_vis = 0;
-  location_uv = 0;
-  location_weather_description = "";
-  location_code = 0;
-  if(ESPclient.connect(weatherHost0.c_str(), 80)){}
-  else {
-    if(printCom){
-      //Serial.println(" Not connection server!!!");
-      //Serial.println("======== END ==========================================");
-    }
-    updateForecast++;
-    return;
-  }
-  HTTPClient http;
-  String line="";
-  //String reqline="http://"+weatherHost0+"/v2.0/current/daily?city="+cityID0+"&lang="+weatherLang+"&key="+weatherKey0;
+  
+  // if(ESPclient.connect(weatherHost0.c_str(), 80)){}
+  // else {
+
+  //   updateForecast++;
+  //   return;
+  // }
+//   //String reqline="http://"+weatherHost0+"/v2.0/current/daily?city="+cityID0+"&lang="+weatherLang+"&key="+weatherKey0;
   String reqline="http://"+weatherHost0+"/v2.0/current/daily?city="+String("&lat=") + String(lat) + String("&lon=") + String(lon)+"&lang="+weatherLang+"&key="+weatherKey0;
-  if(printCom) Serial.print(reqline);
+  LOG(printf_P, PSTR("%s \n"), reqline);
   if(http.begin(ESPclient, reqline)){
     int httpCode = http.GET();
     if(httpCode > 0) {
-      //if(printCom) Serial.printf("    [HTTP] GET... code: %d\n", httpCode);
+      LOG(printf_P, PSTR("[HTTP] GET... code: %d \n"), httpCode);
       if(httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         line = http.getString();
       }
-    } else {
-      if(printCom){
-       // Serial.printf("    [HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-       // Serial.println("======== END ==========================================");
-      }
+    } 
+    else {
+      LOG(printf_P, PSTR("[HTTP] GET... failed, error: %s\n"), http.errorToString(httpCode).c_str());
       http.end();
       updateForecast++;
       return;
     }
     http.end();
-  } else {
-    if(printCom){
-      //Serial.printf("    [HTTP] Unable to connect\n");
-      //Serial.println("======== END ==========================================");
-    }
+  } 
+  else {
+    LOG(printf_P, PSTR("[HTTP] Unable to connect\n"));
     updateForecast++;
     return;
   }
   if(line==""){
-    if(printCom){
-     
-      //Serial.printf("[HTTP] The answer is empty\n");
-      //Serial.println("======== END ==========================================");
-    }
+    LOG(printf_P, PSTR("[HTTP] The answer is empty\n"));
     updateForecast++;
     return;
   }
@@ -88,11 +76,7 @@ void WTH::get() {
   DynamicJsonDocument doc(capacity);
   deserializeJson(doc, line);
   if(!doc.capacity()){
-    if(printCom){
-     
-      //Serial.println("Parse weather forecast - FAILED!!!");
-      //Serial.println("======== END ==========================================");
-    }
+    LOG(printf_P, PSTR("Parse weather forecast - FAILED!!!"));
     updateForecast++;
     return;
   }
@@ -131,9 +115,9 @@ void WTH::get() {
    if(displayForecastNow){
     if ( location_temp > 0 ){
       texttemp = "+" ; 
-    weatherString +=  "Cейчас в " + String(gorod) + ":" + " температура " + texttemp + String(location_temp, 1) + "\260" + "С";
+    weatherString +=  "Cейчас в " + String(city) + ":" + " температура " + texttemp + String(location_temp, 1) + "\260" + "С";
     }else{
-    weatherString +=  "Cейчас в " + String(gorod) + ":" + " температура " + String(location_temp, 1) + "\260" + "С";  
+    weatherString +=  "Cейчас в " + String(city) + ":" + " температура " + String(location_temp, 1) + "\260" + "С";  
     }
     weatherString += " влажность " + String(location_rh) + "% "; 
     weatherString += "давление " + String((location_pres), 0) + (pressSys == 1 ? tPress : tPress0) + "ммРс ";
@@ -142,61 +126,46 @@ void WTH::get() {
   }
   updateForecast = 0;
   updateForecastNot = false;
-  if(printCom){
-    
-    //Serial.println("line =" + line);
-    //Serial.println("======== END ==========================================");
   }
 }
 // ============================================================================//
 //               ПРОГНОЗ!!!    // 
 // ============================================================================//
-void getWeatherDataz0() {
+void Weather::getTomorrow() {
   if(weatherKey0=="" || !displayForecast) return;
   if(WiFi.status() != WL_CONNECTED) {
     updateForecasttomorrow++;
     return;
   }
-  if(printCom){
-    //Serial.println("======== START GET FORECAST FROM WEATHERBIT.IO ========");
+  LOG(printf_P, PSTR("======== START GET FORECAST FROM WEATHERBIT.IO ========"));
    
-  } 
   HTTPClient http;
   String line="";
   //String reqline="http://"+weatherHost0+"/v2.0/forecast/daily?city="+cityID0+"&lang="+weatherLang+"&days=2&key="+weatherKey0;
   String reqline="http://"+weatherHost0+"/v2.0/forecast/daily?city="+String("&lat=") + String(lat) + String("&lon=") + String(lon)+"&lang="+weatherLang+"&days=2&key="+weatherKey0;
-  //if(printCom) Serial.print(reqline);   
+  LOG(printf_P, PSTR("%s \n"), reqline);   
   if(http.begin(ESPclient, reqline)){
    int httpCode = http.GET();
    if(httpCode > 0) {
-     //if(printCom) Serial.printf("  [HTTP] GET... code: %d\n", httpCode);
+     LOG(printf_P, PSTR("[HTTP] GET... code: %d\n"), httpCode);
      if(httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
       line = http.getString();
      }
-   } else {
-     if(printCom){
-        //Serial.printf("    [HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-        //Serial.println("======== END ==========================================");
-      }
+   } 
+   else {
+     LOG(printf_P, PSTR("[HTTP] GET... failed, error: %s\n"), http.errorToString(httpCode).c_str());
      http.end();
      updateForecasttomorrow++;
      return;
    }
    http.end();
   } else {
-    if(printCom){
-      //Serial.printf("    [HTTP] Unable to connect\n");
-     // Serial.println("======== END ==========================================");
-    }
+    LOG(printf_P, PSTR("    [HTTP] Unable to connect\n"));
     updateForecasttomorrow++;
     return;
   }
   if(line==""){
-    if(printCom){
-      
-      //Serial.printf("[HTTP] The answer is empty\n");
-      //Serial.println("======== END ==========================================");
-    }
+    LOG(printf_P, PSTR("[HTTP] The answer is empty\n"));
     updateForecasttomorrow++;
     return;
   }
@@ -204,11 +173,8 @@ void getWeatherDataz0() {
   DynamicJsonDocument doc(capacity);
   deserializeJson(doc, line);
   if(!doc.capacity()){
-    if(printCom){
-      
-     // Serial.println("Parse weather forecast - FAILED!!!");
-      //Serial.println("======== END ==========================================");
-    }
+
+    LOG(printf_P, PSTR("Parse weather forecast - FAILED!!!"));
     updateForecasttomorrow++;
     return;
   }
@@ -245,117 +211,114 @@ void getWeatherDataz0() {
     weatherStringZ += "м/с " + String(data_1_weather_description);
     weatherStringZ += "                   ";
   }
-  //if(printCom) Serial.println("          Getting weather forecast for tomorrow - is OK.");
+  LOG(printf_P, PSTR("Getting weather forecast for tomorrow - is OK."));
   updateForecasttomorrow = 0;
   updateForecastNot = false;
-  //if(printCom){
-   
-    //Serial.println("line =" + line);
-    //Serial.println("======== END ==========================================");
-  //}
+  // Serial.println("line =" + line);
 }
-//=========================================================================================================
-//                                  narodmon.ru
-void getNarodmon() {
-  if(WiFi.status() != WL_CONNECTED)  return;
-  if (printCom) {
-   // printTime();
-   // Serial.println("Connection to narodmon.ru");
-  }
-  if (ESPclient.connect("http://narodmon.ru", 80)) {
-    //if (printCom) Serial.println("connection failed");
-    return;
-  }
-  if (!sensors_ID0) return;
-  String line = "";
-  String reqline = "http://narodmon.ru/api/sensorsValues?sensors=";
-  if (sensors_ID0) reqline += String(sensors_ID0);
-  if (sensors_ID1) reqline += "," + String(sensors_ID1);
-  if (sensors_ID2) reqline += "," + String(sensors_ID2);
-  reqline += "&uuid=" + uuid + "&api_key=" + api_key;
-  if (printCom) {
-   // Serial.println("=======================================================");
-   // Serial.println(reqline);
-    //Serial.println("=======================================================");
-  }
-  HTTPClient http;
-  if (http.begin(ESPclient, reqline)) { // HTTP
-    int httpCode = http.GET();
-    if (httpCode > 0) {
-      //Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-        line = http.getString();
-      }
-    } else {
-     // Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-    }
-    http.end();
-  } else {
-    //Serial.printf("[HTTP} Unable to connect\n");
-  }
-  if (printCom) {
-    Serial.print("answer=");
-    Serial.println(line);
-  }
-  const size_t capacity = JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(1) + 2 * JSON_OBJECT_SIZE(6) + 340; //https://arduinojson.org/v6/assistant/
-  DynamicJsonDocument doc(capacity);
-  deserializeJson(doc, line);
-  if (!doc.capacity()) {
-    if (printCom) Serial.println("          Parse weather forecast - FAILED!!!");
-    return;
-  }
-  JsonObject sensors_0 = doc["sensors"][0];
-  float sensors_0_value = sensors_0["value"]; // 14.2
-  long sensors_0_time = sensors_0["time"]; // 1571853360
-  JsonObject sensors_1 = doc["sensors"][1];
-  float sensors_1_value = sensors_1["value"]; // 14
-  long sensors_1_time = sensors_1["time"]; // 1571853000
-  JsonObject sensors_2 = doc["sensors"][2];
-  float sensors_2_value = sensors_2["value"];
-  long sensors_2_time = sensors_2["time"];
 
-  long timestamp = epochNM + (millis() / 1000);
-  if (printCom) {
-    //printTime();
-   // Serial.println("sensors_0 = " + String(sensors_0_value, 1) + "'C    sensors_1 = " + String(sensors_1_value, 1) + "'C    sensors_2 = " + String(sensors_2_value, 1) + "'C");
-    //Serial.println("time_0 = " + String(timestamp - sensors_0_time) + "      time_1 = " + String(timestamp - sensors_1_time) + "      time_2 = " + String(timestamp - sensors_2_time));
-  }
-    tempNM = 0;
-    //pressNM = 0;
-  //humNM = 0;
-  if (sensors_ID0) {
-    if ((timestamp - sensors_0_time) > 3600) {
-      sensors_0_value = 99;
-    } else tempNM = sensors_0_value;
-  }
-  if (sensors_ID1) {
-    if ((timestamp - sensors_1_time) > 3600) {
-      sensors_1_value = 99;
-    } else if (tempNM > sensors_1_value) tempNM = sensors_1_value;
-  }
-  if (sensors_ID2) {
-    if ((timestamp - sensors_2_time) > 3600) {
-      sensors_2_value = 99;
-    } else if (tempNM > sensors_2_value) tempNM = sensors_2_value;
-  }
-  if (!tempNM && !updateForecast) tempNM = location_temp;
-  //Serial.println("tempNM = " + String(tempNM, 1) + "'C");
-}
-//--------------------------------------------------------------------------
-void getsensorsBme() {  
- // if (bme280 == false) return;
-  tempBme = bme.readTemperature();          
-  humBme = bme.readHumidity();
-  pressBme = bme.readPressure()  / (pressSys == 1 ? 1.3332239 : 1);
-  pressBme = (int) pressBme / 100;
-  altBme = bme.readAltitude(SEALEVELPRESSURE_HPA);   //bme.readAltitudeMeter()  bme.readAltitudeFeet()
-  if (printCom) {
-   // printTime();
-    //Serial.println("Temperature BME280: " + String(tempBme) + " *C,  Humidity: " + String(humBme) + " %,  Pressure: " + String(int(pressBme)) + " мм рт.ст." + ",  Approx altitude: " + String(altBme) + " m");
-  }
-}
-//--------------------------------------------------------------------------
-//=========================================================================================================
+// //=========================================================================================================
+// //                                  G
+// void getNarodmon() {
+//   if(WiFi.status() != WL_CONNECTED)  return;
+//   if (printCom) {
+//    // printTime();
+//    // Serial.println("Connection to narodmon.ru");
+//   }
+//   if (ESPclient.connect("http://narodmon.ru", 80)) {
+//     //if (printCom) Serial.println("connection failed");
+//     return;
+//   }
+//   if (!sensors_ID0) return;
+//   String line = "";
+//   String reqline = "http://narodmon.ru/api/sensorsValues?sensors=";
+//   if (sensors_ID0) reqline += String(sensors_ID0);
+//   if (sensors_ID1) reqline += "," + String(sensors_ID1);
+//   if (sensors_ID2) reqline += "," + String(sensors_ID2);
+//   reqline += "&uuid=" + uuid + "&api_key=" + api_key;
+//   if (printCom) {
+//    // Serial.println("=======================================================");
+//    // Serial.println(reqline);
+//     //Serial.println("=======================================================");
+//   }
+//   HTTPClient http;
+//   if (http.begin(ESPclient, reqline)) { // HTTP
+//     int httpCode = http.GET();
+//     if (httpCode > 0) {
+//       //Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+//       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+//         line = http.getString();
+//       }
+//     } else {
+//      // Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+//     }
+//     http.end();
+//   } else {
+//     //Serial.printf("[HTTP} Unable to connect\n");
+//   }
+//   if (printCom) {
+//     Serial.print("answer=");
+//     Serial.println(line);
+//   }
+//   const size_t capacity = JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(1) + 2 * JSON_OBJECT_SIZE(6) + 340; //https://arduinojson.org/v6/assistant/
+//   DynamicJsonDocument doc(capacity);
+//   deserializeJson(doc, line);
+//   if (!doc.capacity()) {
+//     if (printCom) Serial.println("          Parse weather forecast - FAILED!!!");
+//     return;
+//   }
+//   JsonObject sensors_0 = doc["sensors"][0];
+//   float sensors_0_value = sensors_0["value"]; // 14.2
+//   long sensors_0_time = sensors_0["time"]; // 1571853360
+//   JsonObject sensors_1 = doc["sensors"][1];
+//   float sensors_1_value = sensors_1["value"]; // 14
+//   long sensors_1_time = sensors_1["time"]; // 1571853000
+//   JsonObject sensors_2 = doc["sensors"][2];
+//   float sensors_2_value = sensors_2["value"];
+//   long sensors_2_time = sensors_2["time"];
+
+//   long timestamp = epochNM + (millis() / 1000);
+//   if (printCom) {
+//     //printTime();
+//    // Serial.println("sensors_0 = " + String(sensors_0_value, 1) + "'C    sensors_1 = " + String(sensors_1_value, 1) + "'C    sensors_2 = " + String(sensors_2_value, 1) + "'C");
+//     //Serial.println("time_0 = " + String(timestamp - sensors_0_time) + "      time_1 = " + String(timestamp - sensors_1_time) + "      time_2 = " + String(timestamp - sensors_2_time));
+//   }
+//     tempNM = 0;
+//     //pressNM = 0;
+//   //humNM = 0;
+//   if (sensors_ID0) {
+//     if ((timestamp - sensors_0_time) > 3600) {
+//       sensors_0_value = 99;
+//     } else tempNM = sensors_0_value;
+//   }
+//   if (sensors_ID1) {
+//     if ((timestamp - sensors_1_time) > 3600) {
+//       sensors_1_value = 99;
+//     } else if (tempNM > sensors_1_value) tempNM = sensors_1_value;
+//   }
+//   if (sensors_ID2) {
+//     if ((timestamp - sensors_2_time) > 3600) {
+//       sensors_2_value = 99;
+//     } else if (tempNM > sensors_2_value) tempNM = sensors_2_value;
+//   }
+//   if (!tempNM && !updateForecast) tempNM = location_temp;
+//   //Serial.println("tempNM = " + String(tempNM, 1) + "'C");
+// }
+// //--------------------------------------------------------------------------
+// void getsensorsBme() {  
+//  // if (bme280 == false) return;
+//   tempBme = bme.readTemperature();          
+//   humBme = bme.readHumidity();
+//   pressBme = bme.readPressure()  / (pressSys == 1 ? 1.3332239 : 1);
+//   pressBme = (int) pressBme / 100;
+//   altBme = bme.readAltitude(SEALEVELPRESSURE_HPA);   //bme.readAltitudeMeter()  bme.readAltitudeFeet()
+//   if (printCom) {
+//    // printTime();
+//     //Serial.println("Temperature BME280: " + String(tempBme) + " *C,  Humidity: " + String(humBme) + " %,  Pressure: " + String(int(pressBme)) + " мм рт.ст." + ",  Approx altitude: " + String(altBme) + " m");
+//   }
+// }
+// //--------------------------------------------------------------------------
+// //=========================================================================================================
 
 
 

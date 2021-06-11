@@ -11,6 +11,10 @@
   #include "ftpSrv.h"
 #endif
 
+#ifdef WEATHER
+#include "weather.h"
+#endif
+
 extern MTX matrix;
 
 // MAIN Setup
@@ -21,11 +25,12 @@ void setup() {
 
   // Start EmbUI framework
   embui.begin();
-   
+  weather.handle();
   #ifdef USE_FTP
       ftp_setup(); // запуск ftp-сервера
   #endif
   matrix.init();
+
 }
 
 
@@ -33,6 +38,7 @@ void setup() {
 void loop() {
   embui.handle();
   matrix.handle();
+  weather.handle();
 // LOG(printf_P, PSTR("Matrix was initialized \n"));
 #ifdef USE_FTP
     ftp_loop(); // цикл обработки событий фтп-сервера

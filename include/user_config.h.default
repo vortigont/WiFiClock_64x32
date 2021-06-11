@@ -14,7 +14,7 @@
 #define BME280
 #define BMP280
 #define DHT22   // DHT 22  (AM2302)
-//#define MP3PLAYER                                           // Включить использование MP3 плеера (DF Player)
+// #define MP3PLAYER                                           // Включить использование MP3 плеера (DF Player)
 #define WEATHER
 
 //------------------------------ Настройки LED Матрицы
@@ -26,13 +26,19 @@
 #define MTX_B   16               
 #define MTX_C   17
 #define MTX_D   18
-#define matrix_width (64U)
-#define matrix_height (32U)
+#define MATRIX_WIDTH (64U)
+#define MATRIX_HEIGHT (32U)
+
+#define ANIM_INTERVAL (300U)
+#define NIGHTMODE_TIME (23U)
+#define MORNING_TIME (7U)
 
 #ifdef NARODMON
 #define UID (e50daf38ef50d7f78470a812e9b4b53c)              //для народмона
 #define API_KEY (V6THbfTfw467Q)                             //для народмона
 #endif
+
+#define WEATHERBIT_API_KEY ("")
 
 #ifdef DHT22
 

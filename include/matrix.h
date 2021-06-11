@@ -42,6 +42,7 @@ private:
     String getTime();
     int getHour(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_hour;}
     int getMin(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_min;}
+    int getSec(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_sec;}
     int getMonth(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_mon + 1;}
     int getMDay(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_mday + 1;}
     int getWDay(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_wday;}

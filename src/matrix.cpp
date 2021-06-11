@@ -2,7 +2,7 @@
 #include "matrix.h"
 #include "image.h"
 #include "main.h"
-
+#include "weather.h"
 MTX matrix;
 
 
@@ -12,15 +12,15 @@ void MTX::init()
     cp437(true);
     setRotation(0); 
     setTextWrap(false);
-    fillScreen(0);
     LOG(printf_P, PSTR("Matrix was initialized \n"));
-
+    fillScreen(0);
   }
 
 void MTX::handle()
 {
   if (!mtxStarted) start();
   else {
+    fillScreen(0);
     static unsigned long wait_handlers;
     if (wait_handlers + 500U > millis())
     return;
@@ -28,7 +28,8 @@ void MTX::handle()
     getWeather();
     // if (nightMode) getWeather();
     // else getHome();
-}
+    swapBuffers(true);
+  }
 if(NIGHTMODE_TIME == getHour()) nightMode = true; 
 }
 
@@ -40,26 +41,27 @@ void MTX::start()
   wait_handlers = millis();
   static unsigned long showIp;
   static int l;
-  if (l==0){
-  setTextColor(myCYAN);
-  setCursor(2, 0);
   setFont();
+  setTextColor(myCYAN);
+  if (!l){
+  setCursor(2, 0);
   print("WiFi");
   }
   if (!embui.sysData.wifi_sta && l < 6){
-  print(".");
-  swapBuffers(true);
-  #ifdef MP3PLAYER
-  if(playAlert) dfPlayer.playFolder(wifi_connecting);
-  #endif
-  LOG(printf_P, PSTR("WiFi connecting... \n"));
+    print(".");
+    #ifdef MP3PLAYER
+    if(playAlert) dfPlayer.playFolder(wifi_connecting);
+    #endif
+    LOG(printf_P, PSTR("WiFi connecting... \n"));
+    swapBuffers(true);
+    l++;
   }
   else {
-    fillScreen(0);
     #ifdef MP3PLAYER
     if(playAlert) dfPlayer.playFolder(wifi_connected);
     #endif
-    if (l <=6) {
+    if (l <= 6) {
+      fillScreen(0);
       showIp = millis();
       setFont();
       setCursor(2, 0);
@@ -67,8 +69,9 @@ void MTX::start()
       setCursor(1, 10);
       setFont(&TomThumb);
       println(embui.sysData.wifi_sta ? WiFi.localIP().toString() : "192.168.4.1");
-      swapBuffers(true);
       l++;
+      swapBuffers(true);
+      fillScreen(0);
     }
     if (showIp + 2000 > millis()) return;
     switch (l){
@@ -87,13 +90,13 @@ void MTX::start()
     case 13: drawRGBBitmap(18, 3, image_data_Image36, 26, 26);
     break;
     }
-    l++;
-    swapBuffers(true);
+    if (l >= 7) l++;
     if (l==15) mtxStarted = true;
+    swapBuffers(true);
   }
 }
  
-//Цикл вывода времени
+// Функция для времени в нужном формате
 String MTX::getTime(){
 
   const tm* t = localtime(embui.timeProcessor.now());  // Определяем для вывода времени 
@@ -126,7 +129,7 @@ void MTX::getWeather(){
   setFont(&TomThumb);
   setTextColor(myRED);
   // if ( location_temp > 0 ) texttemp = "+" ;  // ТЕМПЕРАТУРА
-  print("+25c");
+  print(weather.getWeathTemp());
   setTextSize(1);
   setFont();
   if (getMDay() < 10) setCursor(57, 7);
@@ -139,7 +142,7 @@ void MTX::getWeather(){
   setTextSize(1);
   setFont(&TomThumb);
   setTextColor(myRED);
-  print("+20c");
+  print(weather.getWeathTempTmrw());
   setFont();
   setCursor(21, 9);
   setTextSize(1);
@@ -148,17 +151,13 @@ void MTX::getWeather(){
   println(getTime());
   setFont();
   getImage();
-  swapBuffers(true);
-  fillScreen(0);
-
-
-
+    
 }
 
 void MTX::getImage()
 {
   switchAnim=!switchAnim;
-  switch (800) {            // задать с монитора
+  switch (weather.image()) {            // задать с монитора
       case 200: //Гроза с небольшим дождем
       case 201: // Гроза с дождем
       case 202: // гроза с сильным дождем
@@ -273,7 +272,7 @@ void MTX::getImage()
      
         break;
   }
-    switch (801) {      //ЗАДАТЬ С МОНИТОРА
+    switch (weather.image()) {      //ЗАДАТЬ С МОНИТОРА
       case 200: //Гроза с небольшим дождем
       case 201: // Гроза с дождем
       case 202: // гроза с сильным дождем
@@ -381,7 +380,46 @@ void MTX::getImage()
   
 }
 
-// void MTX::getHome(){
+void MTX::getHome(){
+  fillRect(0, 0, 64, 32, myBLACK);
+  setFont();
+  setCursor(42, 0);
+  setTextSize(1);
+  setFont(&TomThumb);
+  setTextColor(myBLUE);
+  println(getTime());
+  setFont();
+  setCursor(4, -2);
+  println(utf8rus("дома"));
+  setTextSize(1);
+  setFont(&TomThumb);
+  setCursor(13, 15);
+  setTextColor(myRED);
+  println("100 mmMs");
+  setCursor(13, 28);
+  setTextColor(myRED);
+  println("+25C");    // температура
+  setCursor(49, 28);
+  setTextColor(myRED);
+  println("50%");   //влажность
+  setFont();
+  switchAnim=!switchAnim;
+  if (switchAnim) {
+  drawRGBBitmap(0, 7, image_data_Image24, 12, 12);
+  drawRGBBitmap(0, 20, image_data_Image22, 12, 12);
+  drawRGBBitmap(38, 20, image_data_Image26, 10, 12);
+  drawRGBBitmap(52, 9, image_data_Image28, 12, 12);
+  }
+  else {
+  drawRGBBitmap(0, 7, image_data_Image25, 12, 12);
+  drawRGBBitmap(0, 20, image_data_Image23, 12, 12);
+  drawRGBBitmap(38, 20, image_data_Image27, 10, 12);
+  drawRGBBitmap(52, 9, image_data_Image29, 12, 12);
+  }
+
+}
+
+void MTX::getClock(){
 //   drawLine(55, 8, 63, 8, myBLACK);
 //   if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
 //       drawLine(55, 8, 63, 8, myBLACK);
@@ -397,10 +435,6 @@ void MTX::getImage()
 //     // scroll_text(24, frameDelay - 4, (weatherString));       // show text
 //     // scroll_text(24, frameDelay - 4, (weatherStringZ));    // show text
 //   }
-
-// }
-
-void MTX::getClock(){
 
 }
 
@@ -429,16 +463,12 @@ void MTX::scrollText(uint8_t ypos, unsigned long scroll_delay, String text)
 
 
 void MTX::getGoodMorning(){
-  static unsigned long wait_handlers;
   static unsigned long goodMorning;
-  if (wait_handlers + 999U > millis())
-  return;
-  wait_handlers = millis();
   if (showMorning) {
     fillRect(0, 0, 64, 32, myBLACK);
     drawRGBBitmap(0, 0, image_data_ytro2, 64, 32);
     swapBuffers(false);
-    fillScreen(0);
+    
     goodMorning = millis();
     showMorning = false;
   }
@@ -447,12 +477,8 @@ void MTX::getGoodMorning(){
 
 
 void MTX::getNightMode(){
-  static unsigned long wait_handlers;
   static unsigned long goodNight;
   static bool l;
-  if (wait_handlers + 999U > millis())
-    return;
-  wait_handlers = millis();
   if (!l){
   fillRect(0, 0, 64, 32, myBLACK); 
   drawRGBBitmap(0, 0, image_data_noch2, 64, 32);
@@ -462,14 +488,14 @@ void MTX::getNightMode(){
   }
   if (goodNight + 3000 > millis()) return;
   fillRect(0, 0, 64, 32, myBLACK);    
-  fillScreen(0);
+  
   setFont();
   setCursor(8, 16);
   setTextSize(1);
   setFont(&FreeSansBold9pt7b);
   setTextColor(Color333(0,0,2));
   println(getTime());
-  swapBuffers(true);
+  
   if (MORNING_TIME == getHour()) showMorning = true;
 }
 
