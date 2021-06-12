@@ -15,7 +15,9 @@
 #include "weather.h"
 #endif
 
-extern MTX matrix;
+#ifdef SENSORS
+#include "sensors.h"
+#endif
 
 // MAIN Setup
 void setup() {
@@ -25,11 +27,12 @@ void setup() {
 
   // Start EmbUI framework
   embui.begin();
-  weather.handle();
+  // weather.handle();
   #ifdef USE_FTP
       ftp_setup(); // запуск ftp-сервера
   #endif
   matrix.init();
+  sens.begin();
 
 }
 

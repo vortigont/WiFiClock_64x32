@@ -3,6 +3,7 @@
 #include "image.h"
 #include "main.h"
 #include "weather.h"
+#include "sensors.h"
 MTX matrix;
 
 
@@ -18,6 +19,7 @@ void MTX::init()
 
 void MTX::handle()
 {
+  static unsigned long weather_home_switch;
   if (!mtxStarted) start();
   else {
     fillScreen(0);
@@ -25,12 +27,20 @@ void MTX::handle()
     if (wait_handlers + 500U > millis())
     return;
     wait_handlers = millis();
-    getWeather();
-    // if (nightMode) getWeather();
-    // else getHome();
+
+    if (nightMode) getNightMode();
+    else{
+    getGoodMorning();
+    if (weather_home_switch + 60*1000 > millis()) getClock();
+    else if (weather_home_switch + 75*1000 > millis()) getHome();
+    else if (weather_home_switch + 90*1000 > millis()) getWeather();
+    }
+
     swapBuffers(true);
+    if (weather_home_switch + 89*1000 < millis()) weather_home_switch = millis();
   }
-if(NIGHTMODE_TIME == getHour()) nightMode = true; 
+if(NIGHTMODE_TIME <= getHour() || MORNING_TIME > getHour()) nightMode = true; 
+else nightMode = false;
 }
 
 void MTX::start()
@@ -73,25 +83,31 @@ void MTX::start()
       swapBuffers(true);
       fillScreen(0);
     }
-    if (showIp + 2000 > millis()) return;
-    switch (l){
-    case 7: drawRGBBitmap(18, 3, image_data_Image30, 26, 26);
-    break;
-    case 8: drawRGBBitmap(18, 3, image_data_Image31, 26, 26);
-    break;
-    case 9: drawRGBBitmap(18, 3, image_data_Image32, 26, 26);
-    break;
-    case 10: drawRGBBitmap(18, 3, image_data_Image33, 26, 26);
-    break;
-    case 11: drawRGBBitmap(18, 3, image_data_Image34, 26, 26);
-    break;
-    case 12: drawRGBBitmap(18, 3, image_data_Image35, 26, 26);
-    break;
-    case 13: drawRGBBitmap(18, 3, image_data_Image36, 26, 26);
-    break;
+    if (showIp + 4000 > millis()) return;
+      switch (l){
+      case 7: drawRGBBitmap(0, 0, image_01, 64, 32);
+      break;
+      case 8: drawRGBBitmap(0, 0, image_02, 64, 32);
+      break;
+      case 9: drawRGBBitmap(0, 0, image_03, 64, 32);
+      break;
+      case 10: drawRGBBitmap(0, 0, image_04, 64, 32);
+      break;
+      case 11: drawRGBBitmap(0, 0, image_05, 64, 32);
+      break;
+      case 12: drawRGBBitmap(0, 0, image_06, 64, 32);
+      break;
+      case 13: drawRGBBitmap(0, 0, image_07, 64, 32);
+      break;
+      case 14: drawRGBBitmap(0, 0, image_08, 64, 32);
+      break;
+      case 15: drawRGBBitmap(0, 0, image_09, 64, 32);
+      break;
+      case 16: drawRGBBitmap(0, 0, image_10, 64, 32);
+      break;
     }
     if (l >= 7) l++;
-    if (l==15) mtxStarted = true;
+    if (l==22) mtxStarted = true;
     swapBuffers(true);
   }
 }
@@ -395,13 +411,13 @@ void MTX::getHome(){
   setFont(&TomThumb);
   setCursor(13, 15);
   setTextColor(myRED);
-  println("100 mmMs");
+  println(sens.getPress());
   setCursor(13, 28);
   setTextColor(myRED);
-  println("+25C");    // температура
+  println(sens.getTemp());    // температура
   setCursor(49, 28);
   setTextColor(myRED);
-  println("50%");   //влажность
+  println(sens.getHum());   //влажность
   setFont();
   switchAnim=!switchAnim;
   if (switchAnim) {
@@ -420,21 +436,55 @@ void MTX::getHome(){
 }
 
 void MTX::getClock(){
-//   drawLine(55, 8, 63, 8, myBLACK);
-//   if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
-//       drawLine(55, 8, 63, 8, myBLACK);
-//       drawLine(55, 7, 63, 7, myBLACK);
-//       // scroll_text(24, frameDelay, ("Подготовка к ночному режиму"));
-//   }
-//   else {
-//     fillRect(46, 10, 2, 13, myBLACK);
-//     drawLine(0, 7, 63, 7, myBLACK);
-//     setTextColor(myMAGENTA);
+  drawLine(55, 8, 63, 8, myBLACK);
+  if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
+      drawLine(55, 8, 63, 8, myBLACK);
+      drawLine(55, 7, 63, 7, myBLACK);
+      // scroll_text(24, frameDelay, ("Подготовка к ночному режиму"));
+  }
+  else {
+    // fillRect(46, 10, 2, 13, myBLACK);
+    // drawLine(0, 7, 63, 7, myBLACK);
+    // setTextColor(myMAGENTA);
 
-//     // print("Сегодня " + getMDay() +  getMonth() + "  " + getYear() + " года " + getWDay());  // show text
-//     // scroll_text(24, frameDelay - 4, (weatherString));       // show text
-//     // scroll_text(24, frameDelay - 4, (weatherStringZ));    // show text
-//   }
+    // print("Сегодня " + getMDay() +  getMonth() + "  " + getYear() + " года " + getWDay());  // show text
+    // scroll_text(24, frameDelay - 4, (weatherString));       // show text
+    // scroll_text(24, frameDelay - 4, (weatherStringZ));    // show text
+    setFont();
+    setCursor(49,8);
+    // drawLine(55, 7, 9, 7, myBLACK);
+    setTextColor(myRED);
+    setFont(&kongtext4pt7b);
+    print(getWDayShort());
+
+
+    setFont();
+    if (getMDay() < 10) setCursor(5,-1);
+    else setCursor(9,0);
+    setTextColor(myRED);
+    setFont(&kongtext4pt7b);
+    print(getMDay());
+
+    setFont();
+    setCursor(22,0);// добавил
+    setTextColor(myGREEN);
+    print(utf8rus(getMonthTxt()));
+    
+    setFont();
+    if (getSec() < 10) setCursor(55,16);
+    else setCursor(49,16);
+    setTextColor(myGREEN);
+    print(getSec());
+
+    setFont();
+    setCursor(1, 15);
+    setTextColor(myGREEN);
+    fillRect(0, 8, 20, 15, myBLACK);
+    setFont(&FreeSansBold9pt7b);
+    setTextSize(1);
+    print(getTime());
+
+  }
 
 }
 
@@ -470,13 +520,14 @@ void MTX::getGoodMorning(){
     swapBuffers(false);
     
     goodMorning = millis();
-    showMorning = false;
   }
   if (goodMorning + 5000U > millis()) return;
+      showMorning = false;
   }
 
 
 void MTX::getNightMode(){
+
   static unsigned long goodNight;
   static bool l;
   if (!l){
@@ -495,7 +546,7 @@ void MTX::getNightMode(){
   setFont(&FreeSansBold9pt7b);
   setTextColor(Color333(0,0,2));
   println(getTime());
-  
+
   if (MORNING_TIME == getHour()) showMorning = true;
 }
 

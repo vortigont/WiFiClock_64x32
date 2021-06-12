@@ -17,6 +17,7 @@ class Weather {
     int image() {return location_code;}
 
 private:
+    void getNarodmon();
     void getToday();
     void getTomorrow();
     int dst = 0;

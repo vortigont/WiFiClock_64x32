@@ -2,7 +2,7 @@
 #ifdef WEATHER
 #include "weather.h"
 #include "EmbUI.h"
-
+#include "Adafruit_BME280.h"
 Weather weather;
 
 
@@ -10,7 +10,7 @@ Weather weather;
 void Weather::handle(){
   static uint32_t timer;
   static bool weatherCheck;
-  if (!weatherCheck && millis() > 5000) {
+  if (!weatherCheck && millis() > 30000) {
     getToday();
     getTomorrow();
     weatherCheck=true;
@@ -214,19 +214,16 @@ void Weather::getTomorrow() {
   LOG(printf_P, PSTR("Getting weather forecast for tomorrow - is OK."));
   updateForecasttomorrow = 0;
   updateForecastNot = false;
-  // Serial.println("line =" + line);
 }
 
-// //=========================================================================================================
-// //                                  G
-// void getNarodmon() {
-//   if(WiFi.status() != WL_CONNECTED)  return;
-//   if (printCom) {
-//    // printTime();
-//    // Serial.println("Connection to narodmon.ru");
+//=========================================================================================================
+// //                                  Народмониторинг
+// void Weather::getNarodmon() {
+//   if(embui.sysData.wifi_sta)  return;
+//   LOG(printf_P, PSTR("Connection to narodmon.ru"));
 //   }
 //   if (ESPclient.connect("http://narodmon.ru", 80)) {
-//     //if (printCom) Serial.println("connection failed");
+//   LOG(printf_P, PSTR("connection failed"));
 //     return;
 //   }
 //   if (!sensors_ID0) return;
@@ -305,21 +302,27 @@ void Weather::getTomorrow() {
 //   //Serial.println("tempNM = " + String(tempNM, 1) + "'C");
 // }
 // //--------------------------------------------------------------------------
-// void getsensorsBme() {  
+// #define SEALEVELPRESSURE_HPA (1013.25)
+// Adafruit_BME280 bme;
+// bool pressSys = 1; 
+// void Weather::begin(){
+//   bme.begin(0x76);
+// }
+// void Weather::getsensorsBme() {  
 //  // if (bme280 == false) return;
+//   static float tempBme = 0;
+//   static float humBme = 0;
+//   static float pressBme = 0;
 //   tempBme = bme.readTemperature();          
 //   humBme = bme.readHumidity();
 //   pressBme = bme.readPressure()  / (pressSys == 1 ? 1.3332239 : 1);
 //   pressBme = (int) pressBme / 100;
-//   altBme = bme.readAltitude(SEALEVELPRESSURE_HPA);   //bme.readAltitudeMeter()  bme.readAltitudeFeet()
-//   if (printCom) {
-//    // printTime();
-//     //Serial.println("Temperature BME280: " + String(tempBme) + " *C,  Humidity: " + String(humBme) + " %,  Pressure: " + String(int(pressBme)) + " мм рт.ст." + ",  Approx altitude: " + String(altBme) + " m");
-//   }
+//   static float altBme = bme.readAltitude(SEALEVELPRESSURE_HPA);   //bme.readAltitudeMeter()  bme.readAltitudeFeet()
+//   LOG(printf_P, PSTR("Temperature BME280: %s C,  Humidity: %s Pressure: %s \n"), String(tempBme), String(humBme), String(int(pressBme)), String(altBme));
+ 
 // }
-// //--------------------------------------------------------------------------
-// //=========================================================================================================
-
+//--------------------------------------------------------------------------
+//=========================================================================================================
 
 
 #endif

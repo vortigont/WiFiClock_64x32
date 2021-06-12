@@ -13,7 +13,7 @@
 #include "EmbUI.h"
 #include <Wire.h>
 #include <SPI.h>
-
+#include "sensors.h"
 
 class MTX : public RGBmatrixPanel {
 public:
@@ -25,7 +25,7 @@ private:
     uint8_t frameDelay = 10;
     uint16_t  animInterv = ANIM_INTERVAL;   /// интервал стартовой анимации
     bool mtxStarted = false;
-    bool nightMode = false;
+    bool nightMode = true;
     bool showMorning = false;
     bool showPoints;
     bool switchAnim;
@@ -44,7 +44,7 @@ private:
     int getMin(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_min;}
     int getSec(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_sec;}
     int getMonth(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_mon + 1;}
-    int getMDay(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_mday + 1;}
+    int getMDay(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_mday;}
     int getWDay(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_wday;}
     int getYear(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_year + 1900;}
     String getMonthTxt(){ 
@@ -64,6 +64,19 @@ private:
             case 12: result = " декабря"; break;
     }
     return result;
+    }
+    String getWDayShort(){
+        String result;
+        switch (getWDay()) {
+            case 1: result = "Kn"; break;
+            case 2: result = "Bt"; break;
+            case 3: result = "Cp"; break;
+            case 4: result = "Ht"; break;
+            case 5: result = "Kt"; break;
+            case 6: result = "Cb"; break;
+            case 7: result = "Bc"; break;
+        }
+        return result;
     }
     String getWDayTxt(){
         String result;
