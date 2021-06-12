@@ -10,10 +10,7 @@
 
 
 //------------------------------ Подключаемое дополнительное оборудование
-
-#define BME280
-#define BMP280
-#define DHT22   // DHT 22  (AM2302)
+#define SENSORS
 // #define MP3PLAYER                                           // Включить использование MP3 плеера (DF Player)
 #define WEATHER
 
@@ -40,7 +37,9 @@
 
 #define WEATHERBIT_API_KEY ("")
 
-#ifdef DHT22
 
+#ifdef SENSORS
+#define SENSOR_TYPE ("BME280")    // BME280, BMP280, DHT22
+#define SEALEVELPRESSURE_HPA (1013.25)  // задаем высоту для датчика BME280
 #endif
 #endif
