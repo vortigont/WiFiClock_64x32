@@ -19,6 +19,8 @@ void MTX::init()
 
 void MTX::handle()
 {
+  if(NIGHTMODE_TIME <= getHour() || MORNING_TIME > getHour()) nightMode = true; 
+  else nightMode = false;
   static unsigned long weather_home_switch;
   if (!mtxStarted) start();
   else {
@@ -27,20 +29,19 @@ void MTX::handle()
     if (wait_handlers + 500U > millis())
     return;
     wait_handlers = millis();
-
-    if (nightMode) getNightMode();
-    else{
-    getGoodMorning();
-    if (weather_home_switch + 60*1000 > millis()) getClock();
-    else if (weather_home_switch + 75*1000 > millis()) getHome();
-    else if (weather_home_switch + 90*1000 > millis()) getWeather();
+    if (getHour() == NIGHTMODE_TIME && getMin() == 0 && getSec() < 5) getScreen();
+    else if (getHour() == MORNING_TIME && getMin() == 0 && getSec() < 5) getScreen();
+    else {
+      if (nightMode) getNightMode();
+      else{
+      if (weather_home_switch + 60*1000 > millis()) getClock();
+      else if (weather_home_switch + 75*1000 > millis()) getHome();
+      else if (weather_home_switch + 90*1000 > millis()) getWeather();
+      }
     }
-
     swapBuffers(true);
     if (weather_home_switch + 89*1000 < millis()) weather_home_switch = millis();
   }
-if(NIGHTMODE_TIME <= getHour() || MORNING_TIME > getHour()) nightMode = true; 
-else nightMode = false;
 }
 
 void MTX::start()
@@ -57,7 +58,7 @@ void MTX::start()
   setCursor(2, 0);
   print("WiFi");
   }
-  if (!embui.sysData.wifi_sta && l < 6){
+  if (!embui.sysData.wifi_sta && l < 6 && millis() < 3000){
     print(".");
     #ifdef MP3PLAYER
     if(playAlert) dfPlayer.playFolder(wifi_connecting);
@@ -83,7 +84,7 @@ void MTX::start()
       swapBuffers(true);
       fillScreen(0);
     }
-    if (showIp + 4000 > millis()) return;
+    if (showIp + 3000 > millis()) return;
       switch (l){
       case 7: drawRGBBitmap(0, 0, image_01, 64, 32);
       break;
@@ -436,13 +437,13 @@ void MTX::getHome(){
 }
 
 void MTX::getClock(){
-  drawLine(55, 8, 63, 8, myBLACK);
-  if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
-      drawLine(55, 8, 63, 8, myBLACK);
-      drawLine(55, 7, 63, 7, myBLACK);
-      // scroll_text(24, frameDelay, ("Подготовка к ночному режиму"));
-  }
-  else {
+  // drawLine(55, 8, 63, 8, myBLACK);
+  // if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
+  //     drawLine(55, 8, 63, 8, myBLACK);
+  //     drawLine(55, 7, 63, 7, myBLACK);
+  //     // scroll_text(24, frameDelay, ("Подготовка к ночному режиму"));
+  // }
+  // else {
     // fillRect(46, 10, 2, 13, myBLACK);
     // drawLine(0, 7, 63, 7, myBLACK);
     // setTextColor(myMAGENTA);
@@ -466,15 +467,16 @@ void MTX::getClock(){
     print(getMDay());
 
     setFont();
-    setCursor(22,0);// добавил
+    setCursor(22,0);
     setTextColor(myGREEN);
     print(utf8rus(getMonthTxt()));
     
     setFont();
-    if (getSec() < 10) setCursor(55,16);
-    else setCursor(49,16);
+    setCursor(49,15);
     setTextColor(myGREEN);
-    print(getSec());
+    setFont(&kongtext4pt7b);
+    if (getSec() < 10) print("0" + String(getSec()));
+    else print(getSec());
 
     setFont();
     setCursor(1, 15);
@@ -484,7 +486,7 @@ void MTX::getClock(){
     setTextSize(1);
     print(getTime());
 
-  }
+  // }
 
 }
 
@@ -512,34 +514,15 @@ void MTX::scrollText(uint8_t ypos, unsigned long scroll_delay, String text)
 }
 
 
-void MTX::getGoodMorning(){
-  static unsigned long goodMorning;
-  if (showMorning) {
-    fillRect(0, 0, 64, 32, myBLACK);
-    drawRGBBitmap(0, 0, image_data_ytro2, 64, 32);
-    swapBuffers(false);
-    
-    goodMorning = millis();
-  }
-  if (goodMorning + 5000U > millis()) return;
-      showMorning = false;
-  }
+void MTX::getScreen(){
+  
+  // static unsigned long showScreen;
+  if (nightMode) drawRGBBitmap(0, 0, image_data_noch2, 64, 32);
+  else drawRGBBitmap(0, 0, image_data_ytro2, 64, 32);
+}
 
 
 void MTX::getNightMode(){
-
-  static unsigned long goodNight;
-  static bool l;
-  if (!l){
-  fillRect(0, 0, 64, 32, myBLACK); 
-  drawRGBBitmap(0, 0, image_data_noch2, 64, 32);
-  swapBuffers(false); 
-  l++;
-  goodNight=millis();
-  }
-  if (goodNight + 3000 > millis()) return;
-  fillRect(0, 0, 64, 32, myBLACK);    
-  
   setFont();
   setCursor(8, 16);
   setTextSize(1);

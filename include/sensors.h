@@ -17,7 +17,7 @@ public:
     }
     String getHum(){String hum = (String)int(readHumidity()) + "%"; return hum;
     }
-    String getPress(){String press = String(readPressure()).substring(0, 3) + "mmMs";return press;}
+    String getPress(){String press = String(readPressure() / 1.3332239).substring(0, 3) + "mmMs";return press;}
     String getAltitude(){String alt = (String)readAltitude(SEALEVELPRESSURE_HPA) + "m"; return alt;};
 
 private:

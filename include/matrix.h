@@ -55,7 +55,7 @@ private:
             case 3: result = " марта"; break;
             case 4: result = " апреля"; break;
             case 5: result = " мая"; break;
-            case 6: result =   " июня"; break;
+            case 6: result = " июня"; break;
             case 7: result = " июля"; break;
             case 8: result = " августа"; break;
             case 9: result = " сентября"; break;
@@ -68,26 +68,26 @@ private:
     String getWDayShort(){
         String result;
         switch (getWDay()) {
+            case 0: result = "Bc"; break;
             case 1: result = "Kn"; break;
             case 2: result = "Bt"; break;
             case 3: result = "Cp"; break;
             case 4: result = "Ht"; break;
             case 5: result = "Kt"; break;
             case 6: result = "Cb"; break;
-            case 7: result = "Bc"; break;
         }
         return result;
     }
     String getWDayTxt(){
         String result;
         switch (getWDay()) {
-            case 1: result = " воскресенье"; break;
-            case 2: result = " понедельник"; break;
-            case 3: result = " вторник"; break;
-            case 4: result = " среда"; break;
-            case 5: result = " четверг"; break;
-            case 6: result = " пятница"; break;
-            case 7: result = " суббота"; break;
+            case 0: result = " воскресенье"; break;
+            case 1: result = " понедельник"; break;
+            case 2: result = " вторник"; break;
+            case 3: result = " среда"; break;
+            case 4: result = " четверг"; break;
+            case 5: result = " пятница"; break;
+            case 6: result = " суббота"; break;
         }
     return result;
     }
@@ -106,7 +106,7 @@ private:
     void getHome();
     void getWeather();
     void getNightMode();
-    void getGoodMorning();
+    void getScreen();
     void getImage();
     void scrollText(uint8_t ypos, unsigned long scroll_delay, String text);
     String utf8rus(String source);
