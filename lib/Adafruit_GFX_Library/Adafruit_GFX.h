@@ -224,6 +224,7 @@ class Adafruit_GFX : public Print {
     textcolor,      ///< 16-bit background color for print()
     textbgcolor;    ///< 16-bit text color for print()
   uint8_t
+    c_old,           ///< Сюда добавил.
     textsize,       ///< Desired magnification of text to print()
     rotation;       ///< Display rotation (0 thru 3)
   boolean

@@ -15,7 +15,7 @@ void MTX::init()
     setTextWrap(false);
     LOG(printf_P, PSTR("Matrix was initialized \n"));
     fillScreen(0);
-    sendStringToMtx(utf8rus("СТАРТУЕМ!").c_str());
+    sendStringToMtx(utf8rus("СТАРТУЕМ !").c_str());
   }
 
 void MTX::handle()
@@ -23,9 +23,9 @@ void MTX::handle()
   if(NIGHTMODE_TIME <= getHour() || MORNING_TIME > getHour()) nightMode = true; 
   else nightMode = false;
   static unsigned long weather_home_switch;
-  if (!mtxStarted) start();
-  else {
-    fillRect(0, 24, 64, 8, matrix.Color333(0, 0, 0));
+  // if (!mtxStarted) start();
+  // else {
+    fillRect(0, 22, 64, 12, matrix.Color333(0, 0, 0));
    if (isStringPrinting) doPrintStringToMtx();
 
 
@@ -45,7 +45,7 @@ void MTX::handle()
     }
     // swapBuffers(true);
     if (weather_home_switch + 89*1000 < millis()) weather_home_switch = millis();
-  }
+  // }
 
   if (!isStringPrinting) swapBuffers(true);
 }
@@ -139,7 +139,7 @@ void MTX::getWeather(){
   fillRect(0, 0, 64, 32, myBLACK);
   setCursor(13, -2);
   setTextColor(myYELLOW);
-  println(utf8rus("погода"));
+  println("погода");
   setFont();
   if (getMDay() < 10) setCursor(7, 7); 
   else setCursor(2, 7);
@@ -415,7 +415,7 @@ void MTX::getHome(){
   println(getTime());
   setFont();
   setCursor(4, -2);
-  println(utf8rus("дома"));
+  println("дома");
   setTextSize(1);
   setFont(&TomThumb);
   setCursor(13, 15);
@@ -478,7 +478,7 @@ void MTX::getClock(){
     setFont();
     setCursor(22,0);
     setTextColor(myGREEN);
-    print(utf8rus(getMonthTxt()));
+    print(getMonthTxt());
     
     setFont();
     setCursor(49,15);
@@ -495,7 +495,8 @@ void MTX::getClock(){
     setTextSize(1);
     print(getTime());
 
-    sendStringToMtx("TEST TEST TEST");
+    sendStringToMtx(utf8rus("Test TEST").c_str());
+    sendStringToMtx(utf8rus("ПРОВЕРКА Проверка").c_str());
     sendStringToMtx(utf8rus("Сегодня отличная погода!").c_str());
   // }
 
@@ -645,6 +646,7 @@ bool MTX::fillStringManual(const char* text,  bool stopText, bool isInverse, int
 
    setFont();
    setCursor(offset, 24);
+   setFont(&Arkhip6pt8b);
     println(text);
   swapBuffers(true);
   if(!stopText) {
@@ -716,8 +718,8 @@ void MTX::getNightMode(){
   setFont(&FreeSansBold9pt7b);
   setTextColor(Color333(0,0,2));
   println(getTime());
-  sendStringToMtx("TEST TEST TEST");
-  sendStringToMtx(utf8rus("Сегодня отличная погода!").c_str());
+  // sendStringToMtx("TEST TEST TEST");
+  // sendStringToMtx("Сегодня отличная погода!");
 
   if (MORNING_TIME == getHour()) showMorning = true;
 }

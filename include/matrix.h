@@ -10,12 +10,12 @@
 #include <Fonts/FreeSansBold9pt7b.h>
 #include <Fonts/TomThumb.h>
 #include <Fonts/Picopixel.h>
+#include <Fonts/Arkhip6pt8b.h>
 #include "EmbUI.h"
 #include <Wire.h>
 #include <SPI.h>
 #include "sensors.h"
 #include "timerMinim.h"
-#include "FastLED.h"
 class MTX : public RGBmatrixPanel {
 public:
     MTX(uint8_t a=MTX_A, uint8_t b=MTX_B, uint8_t c=MTX_C, uint8_t d=MTX_D, uint8_t clk=MTX_CLK, uint8_t lat=MTX_LAT, uint8_t oe=MTX_OE, boolean dbuf=true, uint8_t width=64) : RGBmatrixPanel(a, b, c, d, clk, lat, oe, dbuf, width){} ;
