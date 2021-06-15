@@ -126,7 +126,7 @@ const uint8_t FreeSansBold9pt7bBitmaps[] PROGMEM = {
 };
 
 const GFXglyph FreeSansBold9pt7bGlyphs[] PROGMEM = {
-  { 0, 0, 0, 4, 0, 8 },	// SPC
+  { 0, 0, 0, 6, 0, 8 },	// SPC
   { 0, 3, 13, 6, 2, -12 },	// symbol '!'
   { 5, 7, 5, 9, 1, -12 },	// symbol
   { 10, 10, 12, 10, 0, -11 },	// symbol '#'
@@ -152,7 +152,7 @@ const GFXglyph FreeSansBold9pt7bGlyphs[] PROGMEM = {
   { 232, 8, 14, 10, 1, -13 },	// digit '7'
   { 246, 8, 14, 10, 1, -13 },	// digit '8'
   { 260, 8, 14, 10, 1, -13 },	// digit '9'
-  { 274, 2, 8, 4, 1, -10 },	// symbol ':'
+  { 274, 2, 8, 6, 2, -10 },	// symbol ':'
   { 276, 2, 11, 4, 1, -7 },	// symbol ';'
   { 279, 9, 9, 11, 1, -8 },	// symbol '<'
   { 290, 9, 6, 11, 1, -6 },	// symbol '='

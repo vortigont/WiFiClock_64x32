@@ -46,4 +46,10 @@ void loop() {
 #ifdef USE_FTP
     ftp_loop(); // цикл обработки событий фтп-сервера
 #endif
+//   static unsigned long wait_handlers;
+//   if (wait_handlers + 60000 > millis())
+//     return;
+//   wait_handlers = millis();
+// weather.getNarodmon();
+
 }

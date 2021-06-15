@@ -16,8 +16,9 @@ class Weather {
     now = "+" + String(tempfor1)+"c"; return now;}
     int image() {return location_code;}
 
-private:
     void getNarodmon();
+private:
+    
     void getToday();
     void getTomorrow();
     int dst = 0;
@@ -43,8 +44,8 @@ private:
     HTTPClient http;
     String city = "Гомеле";
     WiFiClient ESPclient;
-    String lat = "38.123";             //Географические координаты
-    String lon = "-78.543";             //
+    String lat = "48.263";             //Географические координаты
+    String lon = "25.180";             //
     String weatherLang = "ru";
     String weatherHost0 = "api.weatherbit.io";
     String weatherKey0 = WEATHERBIT_API_KEY;        //ключ weatherbit
@@ -90,11 +91,20 @@ private:
     float valid_date_1;
     float tempNM = 0.0;
     float pressNM = 0;
+    float humNM = 0;
     float tempBme = 0;
     float humBme = 0;
     float pressBme = 0;
     float altBme = 0;
     String location_weather_description = "";
+    unsigned long epochNM;
+    int sensors_ID0 = 8335;  // температура датчики народмона// 3075
+    int sensors_ID1 = 3075; // 
+    int sensors_ID2 = 0;
+    String narodmonUid = NARODMON_UID;
+    String narodmonApiKey = NARODMON_API_KEY;
+
+
 };
 
 extern Weather weather;

@@ -10,11 +10,17 @@ Weather weather;
 void Weather::handle(){
   static uint32_t timer;
   static bool weatherCheck;
-  if (!weatherCheck && millis() > 30000) {
+  if (!weatherCheck && millis() > 5000) {
+    // getNarodmon();
     getToday();
     getTomorrow();
     weatherCheck=true;
   }
+    static unsigned long wait_handlers2;
+  if (wait_handlers2 + 20000 > millis())
+    return;
+  wait_handlers2 = millis();
+  LOG(printf_P, PSTR("TEMP %d \n"), tempNM);
   if (millis() - timer >= 600*1000) {
     timer += 600*1000;
     do {
@@ -218,111 +224,80 @@ void Weather::getTomorrow() {
 
 //=========================================================================================================
 // //                                  Народмониторинг
-// void Weather::getNarodmon() {
-//   if(embui.sysData.wifi_sta)  return;
-//   LOG(printf_P, PSTR("Connection to narodmon.ru"));
-//   }
-//   if (ESPclient.connect("http://narodmon.ru", 80)) {
-//   LOG(printf_P, PSTR("connection failed"));
-//     return;
-//   }
-//   if (!sensors_ID0) return;
-//   String line = "";
-//   String reqline = "http://narodmon.ru/api/sensorsValues?sensors=";
-//   if (sensors_ID0) reqline += String(sensors_ID0);
-//   if (sensors_ID1) reqline += "," + String(sensors_ID1);
-//   if (sensors_ID2) reqline += "," + String(sensors_ID2);
-//   reqline += "&uuid=" + uuid + "&api_key=" + api_key;
-//   if (printCom) {
-//    // Serial.println("=======================================================");
-//    // Serial.println(reqline);
-//     //Serial.println("=======================================================");
-//   }
-//   HTTPClient http;
-//   if (http.begin(ESPclient, reqline)) { // HTTP
-//     int httpCode = http.GET();
-//     if (httpCode > 0) {
-//       //Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-//       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-//         line = http.getString();
-//       }
-//     } else {
-//      // Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-//     }
-//     http.end();
-//   } else {
-//     //Serial.printf("[HTTP} Unable to connect\n");
-//   }
-//   if (printCom) {
-//     Serial.print("answer=");
-//     Serial.println(line);
-//   }
-//   const size_t capacity = JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(1) + 2 * JSON_OBJECT_SIZE(6) + 340; //https://arduinojson.org/v6/assistant/
-//   DynamicJsonDocument doc(capacity);
-//   deserializeJson(doc, line);
-//   if (!doc.capacity()) {
-//     if (printCom) Serial.println("          Parse weather forecast - FAILED!!!");
-//     return;
-//   }
-//   JsonObject sensors_0 = doc["sensors"][0];
-//   float sensors_0_value = sensors_0["value"]; // 14.2
-//   long sensors_0_time = sensors_0["time"]; // 1571853360
-//   JsonObject sensors_1 = doc["sensors"][1];
-//   float sensors_1_value = sensors_1["value"]; // 14
-//   long sensors_1_time = sensors_1["time"]; // 1571853000
-//   JsonObject sensors_2 = doc["sensors"][2];
-//   float sensors_2_value = sensors_2["value"];
-//   long sensors_2_time = sensors_2["time"];
+void Weather::getNarodmon() {
+  if(!embui.sysData.wifi_sta)  return;
+  LOG(printf_P, PSTR("Connection to narodmon.ru \n"));
+  if (ESPclient.connect("http://narodmon.ru", 80)) {
+  LOG(printf_P, PSTR("connection failed \n"));
+    return;
+  }
+  if (!sensors_ID0) return;
+  String line2 = "";
+  String reqline = "http://narodmon.ru/api/sensorsValues?sensors=";
+  if (sensors_ID0) reqline += String(sensors_ID0);
+  if (sensors_ID1) reqline += "," + String(sensors_ID1);
+  if (sensors_ID2) reqline += "," + String(sensors_ID2);
+  reqline += "&uuid=" + narodmonUid + "&api_key=" + narodmonApiKey;
+  // LOG(printf_P, PSTR("NARODMON %s \n"), reqline);
 
-//   long timestamp = epochNM + (millis() / 1000);
-//   if (printCom) {
-//     //printTime();
-//    // Serial.println("sensors_0 = " + String(sensors_0_value, 1) + "'C    sensors_1 = " + String(sensors_1_value, 1) + "'C    sensors_2 = " + String(sensors_2_value, 1) + "'C");
-//     //Serial.println("time_0 = " + String(timestamp - sensors_0_time) + "      time_1 = " + String(timestamp - sensors_1_time) + "      time_2 = " + String(timestamp - sensors_2_time));
-//   }
-//     tempNM = 0;
-//     //pressNM = 0;
-//   //humNM = 0;
-//   if (sensors_ID0) {
-//     if ((timestamp - sensors_0_time) > 3600) {
-//       sensors_0_value = 99;
-//     } else tempNM = sensors_0_value;
-//   }
-//   if (sensors_ID1) {
-//     if ((timestamp - sensors_1_time) > 3600) {
-//       sensors_1_value = 99;
-//     } else if (tempNM > sensors_1_value) tempNM = sensors_1_value;
-//   }
-//   if (sensors_ID2) {
-//     if ((timestamp - sensors_2_time) > 3600) {
-//       sensors_2_value = 99;
-//     } else if (tempNM > sensors_2_value) tempNM = sensors_2_value;
-//   }
-//   if (!tempNM && !updateForecast) tempNM = location_temp;
-//   //Serial.println("tempNM = " + String(tempNM, 1) + "'C");
-// }
-// //--------------------------------------------------------------------------
-// #define SEALEVELPRESSURE_HPA (1013.25)
-// Adafruit_BME280 bme;
-// bool pressSys = 1; 
-// void Weather::begin(){
-//   bme.begin(0x76);
-// }
-// void Weather::getsensorsBme() {  
-//  // if (bme280 == false) return;
-//   static float tempBme = 0;
-//   static float humBme = 0;
-//   static float pressBme = 0;
-//   tempBme = bme.readTemperature();          
-//   humBme = bme.readHumidity();
-//   pressBme = bme.readPressure()  / (pressSys == 1 ? 1.3332239 : 1);
-//   pressBme = (int) pressBme / 100;
-//   static float altBme = bme.readAltitude(SEALEVELPRESSURE_HPA);   //bme.readAltitudeMeter()  bme.readAltitudeFeet()
-//   LOG(printf_P, PSTR("Temperature BME280: %s C,  Humidity: %s Pressure: %s \n"), String(tempBme), String(humBme), String(int(pressBme)), String(altBme));
- 
-// }
-//--------------------------------------------------------------------------
-//=========================================================================================================
+  if (http.begin(ESPclient, reqline)) { // HTTP
+    int httpCode = http.GET();
+    if (httpCode > 0) {
+      LOG(printf_P, PSTR("[HTTP] GET... code: %d\n"), httpCode);
+      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+        line = http.getString();
+      }
+    } else {
+     LOG(printf_P, PSTR("[HTTP] GET... failed, error: %s\n"), http.errorToString(httpCode).c_str());
+    }
+    http.end();
+  } else {
+    LOG(printf_P, PSTR("[HTTP] Unable to connect\n"));
+  }
+      LOG(printf_P, PSTR("answer="));
+  //   Serial.println(line);
+    const size_t capacity = JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(1) + 2 * JSON_OBJECT_SIZE(6) + 340; //https://arduinojson.org/v6/assistant/
+  DynamicJsonDocument doc(capacity);
+  deserializeJson(doc, line);
+  if (!doc.capacity()) {
+    LOG(printf_P, PSTR("Parse weather forecast - FAILED!!!"));
+    return;
+  }
+  JsonObject sensors_0 = doc["sensors"][0];
+  float sensors_0_value = sensors_0["value"]; // 14.2
+  long sensors_0_time = sensors_0["time"]; // 1571853360
+  JsonObject sensors_1 = doc["sensors"][1];
+  float sensors_1_value = sensors_1["value"]; // 14
+  long sensors_1_time = sensors_1["time"]; // 1571853000
+  JsonObject sensors_2 = doc["sensors"][2];
+  float sensors_2_value = sensors_2["value"];
+  long sensors_2_time = sensors_2["time"];
+
+  long timestamp = epochNM + (millis() / 1000);
+  //  LOG(printf_P, PSTR("sensors_0 = " + String(sensors_0_value, 1) + "'C    sensors_1 = " + String(sensors_1_value, 1) + "'C    sensors_2 = " + String(sensors_2_value, 1) + "'C");
+  //  LOG(printf_P, PSTR("time_0 = " + String(timestamp - sensors_0_time) + "      time_1 = " + String(timestamp - sensors_1_time) + "      time_2 = " + String(timestamp - sensors_2_time));
+
+  //   pressNM = 0;
+  // humNM = 0;
+  if (sensors_ID0) {
+    if ((timestamp - sensors_0_time) > 3600) {
+      sensors_0_value = 99;
+    } else tempNM = sensors_0_value;
+  }
+  if (sensors_ID1) {
+    if ((timestamp - sensors_1_time) > 3600) {
+      sensors_1_value = 99;
+    } else if (tempNM > sensors_1_value) pressNM = sensors_1_value;
+  }
+  if (sensors_ID2) {
+    if ((timestamp - sensors_2_time) > 3600) {
+      sensors_2_value = 99;
+    } else if (tempNM > sensors_2_value) humNM = sensors_2_value;
+  }
+  if (!tempNM && !updateForecast) tempNM = location_temp;
+  //Serial.println("tempNM = " + String(tempNM, 1) + "'C");
+}
+
 
 
 #endif
