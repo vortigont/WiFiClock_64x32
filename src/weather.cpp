@@ -1,5 +1,6 @@
 #include "config.h"
 #ifdef WEATHER
+#include "main.h"
 #include "weather.h"
 #include "EmbUI.h"
 #include "Adafruit_BME280.h"
@@ -9,24 +10,35 @@ Weather weather;
 
 void Weather::handle(){
   static uint32_t timer;
-  static bool weatherCheck;
-  if (!weatherCheck && millis() > 5000) {
-    // getNarodmon();
-    getToday();
-    getTomorrow();
-    weatherCheck=true;
+  static int weatherCheck;
+  static unsigned long wait_handlers2;
+  if (weatherCheck < 3) {
+    if (wait_handlers2 + 4000 > millis())
+      return;
+    wait_handlers2 = millis();
+    switch (weatherCheck) {
+    case 0:
+      getToday();
+      weatherCheck++;
+      break;
+    case 1:
+      getTomorrow();
+      weatherCheck++;
+      break;
+    case 2:
+      getNarodmon();
+      weatherCheck++;
+      break;
+    }
   }
-    static unsigned long wait_handlers2;
-  if (wait_handlers2 + 20000 > millis())
-    return;
-  wait_handlers2 = millis();
-  LOG(printf_P, PSTR("TEMP %d \n"), tempNM);
-  if (millis() - timer >= 600*1000) {
+  // LOG(printf_P, PSTR("TEMP Narodmon %s \n"), getNarodmonTemp().c_str());
+  if (millis() - timer >= 600*1000 && !matrix.isNightMode()) {
     timer += 600*1000;
     do {
       if (timer < 600*1000) break; 
       getToday();
       getTomorrow();
+      getNarodmon();
     } while (timer < millis() - 600*1000);
   }
 }
@@ -115,25 +127,26 @@ void Weather::getToday() {
   location_code = data_weather["code"];
   location_temp = data["temp"]; 
   location_app_temp = data["app_temp"];
-  if ( location_temp > 0 ) texttemp = "+" ; 
-  String windDegString;
-   weatherString = "         ";
+  }
+}
+
+
+String Weather::showToday(){
+  String weatherString;
    if(displayForecastNow){
-    if ( location_temp > 0 ){
-      texttemp = "+" ; 
-    weatherString +=  "Cейчас в " + String(city) + ":" + " температура " + texttemp + String(location_temp, 1) + "\260" + "С";
+    if (location_temp > 0 ){
+    weatherString +=  "Cейчас в " + String(city) + ":" + " температура " + getWeathTemp();
     }else{
-    weatherString +=  "Cейчас в " + String(city) + ":" + " температура " + String(location_temp, 1) + "\260" + "С";  
+    weatherString +=  "Cейчас в " + String(city) + ":" + " температура " + getWeathTemp();  
     }
     weatherString += " влажность " + String(location_rh) + "% "; 
     weatherString += "давление " + String((location_pres), 0) + (pressSys == 1 ? tPress : tPress0) + "ммРс ";
     weatherString += " ветер " + String(location_wind_cdir_full) + " " + String(location_wind_spd, 1) + "м/с";
-    weatherString += " облачность " + String(location_clouds) +  "% " + data_weather_description + "                ";
-  }
-  updateForecast = 0;
-  updateForecastNot = false;
+    weatherString += " облачность " + String(location_clouds) +  "% " + location_weather_description + "  ";
+    return weatherString;
   }
 }
+
 // ============================================================================//
 //               ПРОГНОЗ!!!    // 
 // ============================================================================//
@@ -190,37 +203,45 @@ void Weather::getTomorrow() {
   float data_0_max_temp = data_0["max_temp"]; 
   float data_0_min_temp = data_0["min_temp"]; 
   JsonObject data_1 = doc["data"][1];
-  int data_1_rh = data_1["rh"]; 
-  int data_1_clouds = data_1["clouds"]; 
-  float data_1_wind_spd = data_1["wind_spd"];
+  data_1_rh = data_1["rh"]; 
+  data_1_clouds = data_1["clouds"]; 
+  data_1_wind_spd = data_1["wind_spd"];
   JsonObject data_1_weather = data_1["weather"];
-  const char* data_1_weather_description = data_1_weather["description"];
-  const char* data_1_wind_cdir_full = data_1["wind_cdir_full"];
+  data_1_weather_description = data_1_weather["description"];
+  data_1_wind_cdir_full = data_1["wind_cdir_full"];
   float data_1_max_temp = data_1["max_temp"];
   float data_1_min_temp = data_1["min_temp"];
   float data_1_weather_code = data_1_weather["code"];
-  if ( data_1_min_temp > 0 ) texttempmin = "+" ;
-  if ( data_1_max_temp > 0 ) texttempmax = "+" ;
-    weatherStringZ = "";
     coded1 = 0;
   tempfor1 = 0;
   tempfor2 = 0;
   coded1 += int(data_1_weather_code);
     tempfor1 += int(data_1_min_temp);
     tempfor2 += int(data_1_max_temp);
-    if(displayForecastTomorrow) {
-   if ( tempfor1 > 0 ) texttempmin = "+" ;
-   if ( tempfor2 > 0 ) texttempmax = "+" ;
-    weatherStringZ += "Прогноз на завтра: температура от " + texttempmin + String(data_1_min_temp, 1) + " до " + texttempmax + String(data_1_max_temp, 1) + "\260" + "C";
-    weatherStringZ += " влажность " + String(data_1_rh) + "%";
-    weatherStringZ += " ветер " + String(data_1_wind_cdir_full) + " " + String(data_1_wind_spd, 1);//+ tSpeed
-    weatherStringZ += "м/с " + String(data_1_weather_description);
-    weatherStringZ += "                   ";
-  }
   LOG(printf_P, PSTR("Getting weather forecast for tomorrow - is OK."));
   updateForecasttomorrow = 0;
   updateForecastNot = false;
 }
+
+
+
+
+String Weather::showTomorrow(){
+  String weatherStringZ;
+  if(displayForecastTomorrow) {
+    weatherStringZ += "Прогноз на завтра: температура от " + getMinTmrw() + " до " + getMaxTmrw();
+    weatherStringZ += " влажность " + String(data_1_rh) + "%";
+    weatherStringZ += " ветер " + String(data_1_wind_cdir_full) + " " + String(data_1_wind_spd, 1);//+ tSpeed
+    weatherStringZ += "м/с " + String(data_1_weather_description);
+    weatherStringZ += "     ";
+  }
+  return weatherStringZ;
+}
+
+
+
+
+
 
 //=========================================================================================================
 // //                                  Народмониторинг
@@ -243,19 +264,19 @@ void Weather::getNarodmon() {
   if (http.begin(ESPclient, reqline)) { // HTTP
     int httpCode = http.GET();
     if (httpCode > 0) {
-      LOG(printf_P, PSTR("[HTTP] GET... code: %d\n"), httpCode);
+      LOG(printf_P, PSTR("[HTTP] GET... NARODMON code: %d\n"), httpCode);
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         line = http.getString();
       }
     } else {
-     LOG(printf_P, PSTR("[HTTP] GET... failed, error: %s\n"), http.errorToString(httpCode).c_str());
+     LOG(printf_P, PSTR("[HTTP] GET... failed NARODMON, error: %s\n"), http.errorToString(httpCode).c_str());
     }
     http.end();
   } else {
-    LOG(printf_P, PSTR("[HTTP] Unable to connect\n"));
+    LOG(printf_P, PSTR("[HTTP] Unable to connect NARODMON\n"));
   }
-      LOG(printf_P, PSTR("answer="));
-  //   Serial.println(line);
+      LOG(printf_P, PSTR("NARODMON answer="));
+      LOG(println, F(line.c_str()));
     const size_t capacity = JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(1) + 2 * JSON_OBJECT_SIZE(6) + 340; //https://arduinojson.org/v6/assistant/
   DynamicJsonDocument doc(capacity);
   deserializeJson(doc, line);
@@ -274,30 +295,39 @@ void Weather::getNarodmon() {
   long sensors_2_time = sensors_2["time"];
 
   long timestamp = epochNM + (millis() / 1000);
-  //  LOG(printf_P, PSTR("sensors_0 = " + String(sensors_0_value, 1) + "'C    sensors_1 = " + String(sensors_1_value, 1) + "'C    sensors_2 = " + String(sensors_2_value, 1) + "'C");
-  //  LOG(printf_P, PSTR("time_0 = " + String(timestamp - sensors_0_time) + "      time_1 = " + String(timestamp - sensors_1_time) + "      time_2 = " + String(timestamp - sensors_2_time));
+  // LOG(println, F("sensors_0 = " + sensors_0_value.c_str() + "sensors_1 = " + sensors_1_value.c_str() + "    sensors_2 = " + sensors_2_value.c_str());
+  // LOG(println, F("time_0 = " + (timestamp - sensors_0_time).c_str() + "      time_1 = " + (timestamp - sensors_1_time).c_str() + "      time_2 = " + (timestamp - sensors_2_time).c_str());
 
   //   pressNM = 0;
   // humNM = 0;
-  if (sensors_ID0) {
-    if ((timestamp - sensors_0_time) > 3600) {
-      sensors_0_value = 99;
-    } else tempNM = sensors_0_value;
-  }
-  if (sensors_ID1) {
-    if ((timestamp - sensors_1_time) > 3600) {
-      sensors_1_value = 99;
-    } else if (tempNM > sensors_1_value) pressNM = sensors_1_value;
-  }
-  if (sensors_ID2) {
-    if ((timestamp - sensors_2_time) > 3600) {
-      sensors_2_value = 99;
-    } else if (tempNM > sensors_2_value) humNM = sensors_2_value;
-  }
-  if (!tempNM && !updateForecast) tempNM = location_temp;
+  // if (sensors_ID0) {
+    // if ((timestamp - sensors_0_time) > 3600) {
+      // sensors_0_value = 99;
+    // } else 
+    tempNM = sensors_0_value;
+  // }
+  // if (sensors_ID1) {
+
+    // if ((timestamp - sensors_1_time) > 3600) {
+      // sensors_1_value = 99;
+    // } else if 
+    if (tempNM > sensors_1_value) tempNM = sensors_1_value;
+  // }
+  // if (sensors_ID2) {
+  //   if ((timestamp - sensors_2_time) > 3600) {
+  //     sensors_2_value = 99;
+  //   } else if (tempNM > sensors_2_value) humNM = sensors_2_value;
+  // }
+  // if (!tempNM && !updateForecast) tempNM = location_temp;
   //Serial.println("tempNM = " + String(tempNM, 1) + "'C");
 }
 
+String Weather::showNarodmon(){
+  String now;
+  now += "Народный мониторинг - на улице температура: " + getNarodmonTemp();
+  now += "     В помещении: " + sens.getTemp() + "\260C,влажность: " + sens.getHum() + "%, давление: " + sens.getPress() +  "мм.рт.ст.";
+  return now;
+}
 
 
 #endif

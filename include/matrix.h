@@ -10,32 +10,43 @@
 #include <Fonts/FreeSansBold9pt7b.h>
 #include <Fonts/TomThumb.h>
 #include <Fonts/Picopixel.h>
-#include <Fonts/Arkhip6pt8b.h>
+#include <FontsCustomRu/ScrollFont7pt8b.h>
+#include <FontsRus/FreeSerif7.h>
 #include "EmbUI.h"
 #include <Wire.h>
 #include <SPI.h>
 #include "sensors.h"
 #include "timerMinim.h"
+#ifdef STANDART_PINS
+static uint8_t rgbpin[] = {25, 26, 27, 13, 14, 23};
+#endif
+#ifndef STANDART_PINS
+static uint8_t rgbpin[] = {25, 27, 26, 13, 23, 14}; 
+#endif
+
 class MTX : public RGBmatrixPanel {
 public:
-    MTX(uint8_t a=MTX_A, uint8_t b=MTX_B, uint8_t c=MTX_C, uint8_t d=MTX_D, uint8_t clk=MTX_CLK, uint8_t lat=MTX_LAT, uint8_t oe=MTX_OE, boolean dbuf=true, uint8_t width=64) : RGBmatrixPanel(a, b, c, d, clk, lat, oe, dbuf, width){} ;
+    MTX(uint8_t a=MTX_A, uint8_t b=MTX_B, uint8_t c=MTX_C, uint8_t d=MTX_D, uint8_t clk=MTX_CLK, uint8_t lat=MTX_LAT, uint8_t oe=MTX_OE, boolean dbuf=true, uint8_t width=64, uint8_t *pinlist = rgbpin) : RGBmatrixPanel(a, b, c, d, clk, lat, oe, dbuf, width, rgbpin){} ;
     void init();
     void handle();
+    bool isNightMode() {return nightMode;}
 
 private:
+
     uint8_t frameDelay = 10;
     uint16_t  animInterv = ANIM_INTERVAL;   /// интервал стартовой анимации
     bool isStringPrinting;
     String &prepareText(String &source);
-    uint16_t scroll_delay = 300;
+    uint16_t scroll_interval = SCROLL_INTERVAL;
     int8_t textOffset;
     DynamicJsonDocument *docArrMessages = nullptr; // массив сообщений для вывода на матрицу
     byte txtOffset = 0;
     bool mtxStarted = false;
-    bool nightMode = true;
+    bool nightMode;
     bool showMorning = false;
     bool showPoints;
     bool switchAnim;
+    bool displayForecastNow = true;
     uint16_t myRED = Color333(3, 0, 0);
     uint16_t myGREEN = Color333(0, 3, 0);
     uint16_t myBLUE = Color333(0, 0, 3);
@@ -46,6 +57,9 @@ private:
     uint16_t myShadow = Color333(5, 0, 3);
     uint16_t myROSE = Color333(3, 0, 5);
     uint16_t myBLACK = Color333(0, 0, 0);
+    bool showTod = true;
+    bool showWthTxt = true;
+    bool switchHome;
     String getTime();
     int getHour(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_hour;}
     int getMin(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_min;}
@@ -119,6 +133,7 @@ private:
     void doPrintStringToMtx(const char* text = nullptr, const int8_t textOffset = -128, const int16_t fixedPos = 0);
     void scrollText(String text, uint16_t scroll_delay);
     void setTextOffset(uint8_t val) { txtOffset=val;}
+    void showText();
     uint16_t _letterColor;
     timerMinim tmStringStepTime;    // шаг смещения строки, в мс
     bool fillStringManual(const char* text,  bool stopText = false, bool isInverse = false, int32_t pos = 0, int8_t letSpace = 1, int8_t txtOffset = 0, int8_t letWidth = 5, int8_t letHeight = 8); // -2147483648

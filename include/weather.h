@@ -11,24 +11,34 @@ class Weather {
     public:
     void handle();
     String getWeathTemp(){String now;
-    now = "+" + String(location_temp)+"c"; return now;}
+    now =  (location_temp > 0 ? "+" : ((location_temp < 0 ) ? "-" : "")) + String(location_temp) + + "\260" + "С"; return now;}
     String getWeathTempTmrw(){String now;
-    now = "+" + String(tempfor1)+"c"; return now;}
+    now = (tempfor1 > 0 ? "+" : ((tempfor1 < 0 ) ? "-" : "")) + String(tempfor1) + "\260" + "С"; return now;}
     int image() {return location_code;}
-
+    String showNarodmon();
+    String showHome();
+    String showToday();
+    String showTomorrow();
     void getNarodmon();
+    String getNarodmonTemp() { 
+    String now;
+    now =  (tempNM > 0 ? "+" : ((tempNM < 0 ) ? "-" : "")) + String(tempNM, 1) + + "\260" + "С"; return now;}
 private:
-    
     void getToday();
     void getTomorrow();
+    String getMinTmrw(){String now;
+    now = (tempfor1 > 0 ? "+" : ((tempfor1 < 0 ) ? "-" : "")) + String(tempfor1) + "\260" + "С"; return now;}
+    String getMaxTmrw(){String now;
+    now = (tempfor2 > 0 ? "+" : ((tempfor2 < 0 ) ? "-" : "")) + String(tempfor2)+ "\260" + "С"; return now;}
+    String city = CITY;
+    int data_1_rh;
+    int data_1_clouds;
     int dst = 0;
     int ii;
     int nn;
     float hd;
     float td;
     String rh;
-    String weatherString;
-    String weatherStringZ;
     String weatherDescription = "";
     String weatherLocation = "";
     uint32_t lastTime = 0; 
@@ -42,7 +52,6 @@ private:
     String tNow, tCurr, tPress, tPress0, tSpeed, tMin, tTom, tYour, tPoint, tIp, tPass, tWeatrNot, tWeatrTN;
     String jsonConfig = "{}";
     HTTPClient http;
-    String city = "Гомеле";
     WiFiClient ESPclient;
     String lat = "48.263";             //Географические координаты
     String lon = "25.180";             //
@@ -88,6 +97,8 @@ private:
     float data_1_max_temp;
     float data_1_min_temp;
     float data_1_wind_spd;
+    const char* data_1_weather_description;
+    const char* data_1_wind_cdir_full;
     float valid_date_1;
     float tempNM = 0.0;
     float pressNM = 0;
@@ -103,8 +114,7 @@ private:
     int sensors_ID2 = 0;
     String narodmonUid = NARODMON_UID;
     String narodmonApiKey = NARODMON_API_KEY;
-
-
+    
 };
 
 extern Weather weather;

@@ -15,7 +15,8 @@ void MTX::init()
     setTextWrap(false);
     LOG(printf_P, PSTR("Matrix was initialized \n"));
     fillScreen(0);
-    sendStringToMtx(utf8rus("СТАРТУЕМ !").c_str());
+    tmStringStepTime.setInterval(scroll_interval);
+    // sendStringToMtx("СТАРТУЕМ !");
   }
 
 void MTX::handle()
@@ -23,35 +24,61 @@ void MTX::handle()
   if(NIGHTMODE_TIME <= getHour() || MORNING_TIME > getHour()) nightMode = true; 
   else nightMode = false;
   static unsigned long weather_home_switch;
-  // if (!mtxStarted) start();
-  // else {
+  static uint32_t weatherTimer;
+  if (!mtxStarted) start();
+  else {
     fillRect(0, 22, 64, 12, matrix.Color333(0, 0, 0));
-   if (isStringPrinting) doPrintStringToMtx();
-
-
+    if (isStringPrinting) doPrintStringToMtx();
     static unsigned long wait_handlers;
     if (wait_handlers + 500U > millis())
     return;
     wait_handlers = millis();
     if (getHour() == NIGHTMODE_TIME && getMin() == 0 && getSec() < 5) getScreen();
     else if (getHour() == MORNING_TIME && getMin() == 0 && getSec() < 5) getScreen();
-    else {
+    else 
+    {
       if (nightMode) getNightMode();
-      else{
-      if (weather_home_switch + 60*1000 > millis()) getClock();
-      else if (weather_home_switch + 75*1000 > millis()) getHome();
-      else if (weather_home_switch + 90*1000 > millis()) getWeather();
+      else 
+      {
+        if (weather_home_switch + 30*1000 > millis() || isStringPrinting) 
+        {
+          getClock();
+          if (showWthTxt && millis() > 10*1000) 
+          {
+            if (!switchHome)
+            {
+              sendStringToMtx(String("Сегодня " + String(getMDay()) +  getMonthTxt() + "  " + String(getYear()) + " года " + getWDayTxt()).c_str());  // show text
+              sendStringToMtx(weather.showToday().c_str());
+            }
+            else 
+            {
+              sendStringToMtx(weather.showTomorrow().c_str());
+              sendStringToMtx(weather.showNarodmon().c_str());
+            }
+
+            showWthTxt = false;
+          }
+          weatherTimer = millis();
+        }
+        if (weather_home_switch + 30*1000 < millis() && !isStringPrinting) 
+        {
+          if(switchHome) getHome();
+          else getWeather();
+          swapBuffers(true);
+          if (weatherTimer + 15*1000 > millis()) 
+          return;
+          weather_home_switch = millis();
+          showWthTxt = true;
+          switchHome=!switchHome;
+        } 
       }
     }
-    // swapBuffers(true);
-    if (weather_home_switch + 89*1000 < millis()) weather_home_switch = millis();
-  // }
-
+    
+  }
   if (!isStringPrinting) swapBuffers(true);
 }
 
-void MTX::start()
-{
+void MTX::start() {
   static unsigned long wait_handlers;
   if (wait_handlers + animInterv > millis())
     return;
@@ -445,18 +472,17 @@ void MTX::getHome(){
 }
 
 void MTX::getClock(){
-  // drawLine(55, 8, 63, 8, myBLACK);
-  // if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
-  //     drawLine(55, 8, 63, 8, myBLACK);
-  //     drawLine(55, 7, 63, 7, myBLACK);
-  //     // scroll_text(24, frameDelay, ("Подготовка к ночному режиму"));
-  // }
+  if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
+      drawLine(55, 8, 63, 8, myBLACK);
+      drawLine(55, 7, 63, 7, myBLACK);
+      sendStringToMtx("Подготовка к ночному режиму");
+  }
   // else {
     // fillRect(46, 10, 2, 13, myBLACK);
     // drawLine(0, 7, 63, 7, myBLACK);
     // setTextColor(myMAGENTA);
 
-    // print("Сегодня " + getMDay() +  getMonth() + "  " + getYear() + " года " + getWDay());  // show text
+
     // scroll_text(24, frameDelay - 4, (weatherString));       // show text
     // scroll_text(24, frameDelay - 4, (weatherStringZ));    // show text
     fillScreen(0);
@@ -495,13 +521,12 @@ void MTX::getClock(){
     setTextSize(1);
     print(getTime());
 
-    sendStringToMtx(utf8rus("Test TEST").c_str());
-    sendStringToMtx(utf8rus("ПРОВЕРКА Проверка").c_str());
-    sendStringToMtx(utf8rus("Сегодня отличная погода!").c_str());
+    // sendStringToMtx("АБВ");
+    // sendStringToMtx("ПРОВЕРКА Проверка");
+    // sendStringToMtx("Сегодня отличная погода!");
   // }
 
 }
-
 
 
 void MTX::sendStringToMtx(const char* text, bool forcePrint, bool clearQueue, int8_t textOffset, const int16_t fixedPos)
@@ -563,7 +588,7 @@ void MTX::sendStringToMtx(const char* text, bool forcePrint, bool clearQueue, in
       if(docArrMessages){
         arr = (*docArrMessages).as<JsonArray>(); // используем имеющийся
       } else {
-        docArrMessages = new DynamicJsonDocument(512);
+        docArrMessages = new DynamicJsonDocument(1024);
         arr = (*docArrMessages).to<JsonArray>(); // создаем новый
       }
 
@@ -644,16 +669,16 @@ bool MTX::fillStringManual(const char* text,  bool stopText, bool isInverse, int
     return true;
   }
 
-   setFont();
-   setCursor(offset, 24);
-   setFont(&Arkhip6pt8b);
+    setFont();
+    setCursor(offset, 24);
+    setFont();
     println(text);
-  swapBuffers(true);
+    swapBuffers(true);
   if(!stopText) {
     offset--;   ///////// МЕНЯТЬ
     // LOG(println, F("TEST?"));
     }
-  if ((offset + lenght * 7 < 0 ))
+  if ((offset + lenght * 5 < 0 ))
   {
     offset = MATRIX_WIDTH;
     lenght = 0;
