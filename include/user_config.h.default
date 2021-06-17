@@ -15,7 +15,7 @@
 #define WEATHER
 
 //------------------------------ Настройки LED Матрицы
-//#define MATRIX
+#define STANDART_PINS                       // Закомментировать, если неправильно отображаются цвета (для matrix P2.5)
 #define MTX_CLK  15
 #define MTX_OE   33
 #define MTX_LAT  32
@@ -29,12 +29,14 @@
 #define ANIM_INTERVAL (300U)
 #define NIGHTMODE_TIME (23U)
 #define MORNING_TIME (7U)
+#define SCROLL_INTERVAL (25)                    // Скорость бегущей строки
 
 #ifdef NARODMON
 #define NARODMON_UID ("")              //для народмона
 #define NARODMON_API_KEY ("")                             //для народмона
 #endif
 
+#define CITY ("Гомелe")
 #define WEATHERBIT_API_KEY ("")
 #define WEATHERBIT_LAT  ("")
 #define WEATHERBIT_LON  ("")

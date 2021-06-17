@@ -17,12 +17,7 @@
 #include <SPI.h>
 #include "sensors.h"
 #include "timerMinim.h"
-#ifdef STANDART_PINS
-static uint8_t rgbpin[] = {25, 26, 27, 13, 14, 23};
-#endif
-#ifndef STANDART_PINS
-static uint8_t rgbpin[] = {25, 27, 26, 13, 23, 14}; 
-#endif
+
 
 class MTX : public RGBmatrixPanel {
 public:
