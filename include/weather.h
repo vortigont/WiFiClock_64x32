@@ -92,7 +92,7 @@ private:
     int    location_vis;
     int    location_uv;
     int  tempfor1;
-    float  tempfor2;
+    int  tempfor2;
     int   data_1_weather_code;
     float data_1_max_temp;
     float data_1_min_temp;

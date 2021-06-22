@@ -44,7 +44,7 @@ void Weather::handle(){
 }
 
 //===============================================================================================================================//
-//                              ПОГОДА                                                //
+//                              ПОГОДА                                                
 //===============================================================================================================================//
 void Weather::getToday() {
   // if(weatherKey0=="" || !displayForecast) return;
@@ -142,7 +142,7 @@ String Weather::showToday(){
     weatherString += " влажность " + String(location_rh) + "% "; 
     weatherString += "давление " + String((location_pres), 0) + (pressSys == 1 ? tPress : tPress0) + "ммРс ";
     weatherString += " ветер " + String(location_wind_cdir_full) + " " + String(location_wind_spd, 1) + "м/с";
-    weatherString += " облачность " + String(location_clouds) +  "% " + location_weather_description + "  ";
+    weatherString += " облачность " + String(location_clouds) +  "% " + location_weather_description + ".  ";
     return weatherString;
   }
 }
@@ -233,7 +233,7 @@ String Weather::showTomorrow(){
     weatherStringZ += " влажность " + String(data_1_rh) + "%";
     weatherStringZ += " ветер " + String(data_1_wind_cdir_full) + " " + String(data_1_wind_spd, 1);//+ tSpeed
     weatherStringZ += "м/с " + String(data_1_weather_description);
-    weatherStringZ += "     ";
+    weatherStringZ += ".  ";
   }
   return weatherStringZ;
 }
@@ -325,7 +325,7 @@ void Weather::getNarodmon() {
 String Weather::showNarodmon(){
   String now;
   now += "Народный мониторинг - на улице температура: " + getNarodmonTemp();
-  now += "     В помещении: " + sens.getTemp() + "\260C,влажность: " + sens.getHum() + "%, давление: " + sens.getPress() +  "мм.рт.ст.";
+  now += "     В помещении: " + sens.getTemp() + ",влажность: " + sens.getHum() + ", давление: " + sens.getPress() +  ".";
   return now;
 }
 

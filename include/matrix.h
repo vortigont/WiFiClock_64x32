@@ -10,7 +10,7 @@
 #include <Fonts/FreeSansBold9pt7b.h>
 #include <Fonts/TomThumb.h>
 #include <Fonts/Picopixel.h>
-#include <FontsCustomRu/ScrollFont7pt8b.h>
+#include <FontsCustomRu/Heebo7pt8b.h>
 #include <FontsRus/FreeSerif7.h>
 #include "EmbUI.h"
 #include <Wire.h>
@@ -117,18 +117,16 @@ private:
         }
         return tommorrow;
     };
-    void start();
-    void getClock();
-    void getHome();
-    void getWeather();
-    void getNightMode();
-    void getScreen();
-    void getImage();
-    void sendStringToMtx(const char* text = nullptr, bool forcePrint = false, bool clearQueue = false, const int8_t textOffset = -128, const int16_t fixedPos = 0);
-    void doPrintStringToMtx(const char* text = nullptr, const int8_t textOffset = -128, const int16_t fixedPos = 0);
-    void scrollText(String text, uint16_t scroll_delay);
-    void setTextOffset(uint8_t val) { txtOffset=val;}
-    void showText();
+    void start();  // Стартовая анимация часов (с подключением к WiFi и отображением IP)
+    void getClock();    // Главный экран часов (дневной режим)
+    void getHome();        // Погода дома (датчики)
+    void getWeather();          // Погода на улице (weatherbit.io)
+    void getNightMode();        // Ночной режим
+    void getScreen();           // Заставка переключения дневного и ночного режима
+    void getImage();            // Изображения значков погоды для экрана getWeather() (weatherbit.io)
+    void sendStringToMtx(const char* text = nullptr, bool forcePrint = false, bool clearQueue = false, const int8_t textOffset = -128, const int16_t fixedPos = 0);  // Функция отправки строки на матрицу
+    void doPrintStringToMtx(const char* text = nullptr, const int8_t textOffset = -128, const int16_t fixedPos = 0);    // Связана с отправкой текста на лампу
+    void setTextOffset(uint8_t val) { txtOffset=val;}                   // Пока особо не задействуется
     uint16_t _letterColor;
     timerMinim tmStringStepTime;    // шаг смещения строки, в мс
     bool fillStringManual(const char* text,  bool stopText = false, bool isInverse = false, int32_t pos = 0, int8_t letSpace = 1, int8_t txtOffset = 0, int8_t letWidth = 5, int8_t letHeight = 8); // -2147483648
