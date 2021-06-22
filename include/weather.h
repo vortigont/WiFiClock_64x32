@@ -11,9 +11,9 @@ class Weather {
     public:
     void handle();
     String getWeathTemp(){String now;
-    now =  (location_temp > 0 ? "+" : ((location_temp < 0 ) ? "-" : "")) + String(location_temp) + + "\260" + "С"; return now;}
+    now =  (location_temp > 0 ? "+" : ((location_temp < 0 ) ? "-" : "")) + String(location_temp) + + "\260" + "c"; return now;}
     String getWeathTempTmrw(){String now;
-    now = (tempfor1 > 0 ? "+" : ((tempfor1 < 0 ) ? "-" : "")) + String(tempfor1) + "\260" + "С"; return now;}
+    now = (tempfor1 > 0 ? "+" : ((tempfor1 < 0 ) ? "-" : "")) + String(tempfor1) + "\260" + "c"; return now;}
     int image() {return location_code;}
     String showNarodmon();
     String showHome();
@@ -22,14 +22,14 @@ class Weather {
     void getNarodmon();
     String getNarodmonTemp() { 
     String now;
-    now =  (tempNM > 0 ? "+" : ((tempNM < 0 ) ? "-" : "")) + String(tempNM, 1) + + "\260" + "С"; return now;}
+    now =  (tempNM > 0 ? "+" : ((tempNM < 0 ) ? "-" : "")) + String(tempNM, 1) + + "\260" + "c"; return now;}
 private:
     void getToday();
     void getTomorrow();
     String getMinTmrw(){String now;
-    now = (tempfor1 > 0 ? "+" : ((tempfor1 < 0 ) ? "-" : "")) + String(tempfor1) + "\260" + "С"; return now;}
+    now = (tempfor1 > 0 ? "+" : ((tempfor1 < 0 ) ? "-" : "")) + String(tempfor1) + "\260" + "c"; return now;}
     String getMaxTmrw(){String now;
-    now = (tempfor2 > 0 ? "+" : ((tempfor2 < 0 ) ? "-" : "")) + String(tempfor2)+ "\260" + "С"; return now;}
+    now = (tempfor2 > 0 ? "+" : ((tempfor2 < 0 ) ? "-" : "")) + String(tempfor2)+ "\260" + "c"; return now;}
     String city = CITY;
     int data_1_rh;
     int data_1_clouds;

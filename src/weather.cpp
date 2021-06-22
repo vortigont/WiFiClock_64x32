@@ -325,7 +325,7 @@ void Weather::getNarodmon() {
 String Weather::showNarodmon(){
   String now;
   now += "Народный мониторинг - на улице температура: " + getNarodmonTemp();
-  now += "     В помещении: " + sens.getTemp() + ",влажность: " + sens.getHum() + ", давление: " + sens.getPress() +  ".";
+  now += "     В помещении: " + sens.getTemp() + ",влажность: " + sens.getHum() + ", давление: " + sens.getPress() +  "ммРc.";
   return now;
 }
 

@@ -1171,6 +1171,27 @@ size_t Adafruit_GFX::write(uint8_t c) {
         }
 
     } else { // Custom font
+    	if(c_old != 0) {                                          /// < начало кода здесь.
+		switch (c_old) {
+			case 0xD0: {
+				if (c == 0x81) {c = 0xA8; break; }
+				if (c >= 0x90 && c <= 0xBF) c = c + 0x30;
+				break;
+			}
+			case 0xD1: {
+				if (c == 0x91) {c = 0xB8; break; }
+				if (c >= 0x80 && c <= 0x8F) c = c + 0x70;
+				break;
+			}
+		}
+	} else if(c >= 0xC0) {
+		switch (c) {
+			case 0xD0:case 0xD1:
+				c_old=c;
+				c='\r';
+				break;
+		}
+	}                                                     /// < Конец кода здесь.
 
         if(c == '\n') {
             cursor_x  = 0;
@@ -1191,6 +1212,7 @@ size_t Adafruit_GFX::write(uint8_t c) {
                           (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
                     }
                     drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
+                    c_old=0;                           // ЕЩЕ ТУТ ОБНУЛЯТЬ ПРИХОДИТСЯ!!!
                 }
                 cursor_x += (uint8_t)pgm_read_byte(&glyph->xAdvance) * (int16_t)textsize;
             }

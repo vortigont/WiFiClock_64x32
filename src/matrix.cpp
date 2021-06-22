@@ -4,9 +4,10 @@
 #include "main.h"
 #include "weather.h"
 #include "sensors.h"
+
 MTX matrix;
 
-
+// Инициализация матрицы
 void MTX::init()
 {
     begin();
@@ -16,18 +17,16 @@ void MTX::init()
     LOG(printf_P, PSTR("Matrix was initialized \n"));
     fillScreen(0);
     tmStringStepTime.setInterval(scroll_interval);
-    // sendStringToMtx("СТАРТУЕМ !");
   }
 
-void MTX::handle()
-{
+// Обработчик матрицы
+void MTX::handle() {
   if(NIGHTMODE_TIME <= getHour() || MORNING_TIME > getHour()) nightMode = true; 
   else nightMode = false;
   static unsigned long weather_home_switch;
   static uint32_t weatherTimer;
   if (!mtxStarted) start();
   if (!mtxStarted) return;
-  // fillRect(0, 22, 64, 12, matrix.Color333(0, 0, 0));
   if (isStringPrinting) doPrintStringToMtx();
   static unsigned long wait_handlers;
   if (wait_handlers + 500U > millis())
@@ -76,8 +75,7 @@ void MTX::handle()
   if (!isStringPrinting) swapBuffers(true);
 }
 
-// Стартовая анимация часов (с подключением к WiFi и отображением IP)
-//
+/// Стартовая анимация часов (с подключением к WiFi и отображением IP)
 void MTX::start() {
   static unsigned long wait_handlers;
   if (wait_handlers + animInterv > millis())
@@ -85,65 +83,115 @@ void MTX::start() {
   wait_handlers = millis();
   static unsigned long showIp;
   static int l;
-  setFont();
-  setTextColor(myCYAN);
-  if (!l){
-  setCursor(2, 0);
-  print("WiFi");
-  }
-  if (!embui.sysData.wifi_sta && l < 6 && millis() < 3000){
-    print(".");
-    #ifdef MP3PLAYER
-    if(playAlert) dfPlayer.playFolder(wifi_connecting);
-    #endif
-    LOG(printf_P, PSTR("WiFi connecting... \n"));
-    swapBuffers(true);
-    l++;
-  }
-  else {
-    #ifdef MP3PLAYER
-    if(playAlert) dfPlayer.playFolder(wifi_connected);
-    #endif
-    if (l <= 6) {
-      fillScreen(0);
-      showIp = millis();
-      setFont();
-      setCursor(2, 0);
-      println(embui.sysData.wifi_sta ? "WiFi OK" : "WiFi AP");
-      setCursor(1, 10);
-      setFont(&TomThumb);
-      println(embui.sysData.wifi_sta ? WiFi.localIP().toString() : "192.168.4.1");
-      l++;
+  static int i;
+  l++;
+  swapBuffers(true);
+  // setFont();
+  // setTextColor(myCYAN);
+  if (!i) {
+    if (!embui.sysData.wifi_sta && millis() < 5000){
+
+      drawRGBBitmap(0, 0, image_wifi, 64, 32);
+      switch (l) {
+        case 1:
+          fillRect(0, 0, 64, 25, myBLACK);
+          break;
+        
+        case 2:
+          fillRect(0, 0, 64, 17, myBLACK);
+          fillRect(0, 0, 22, 32, myBLACK);
+          fillRect(42, 0, 20, 32, myBLACK);
+          break;
+
+        case 3:
+          fillRect(0, 0, 64, 9, myBLACK);
+          fillCircle(13, 7, 5, myBLACK);
+          fillCircle(50, 7, 5, myBLACK);
+          break;
+        
+        case 4:
+          l = 0;
+          break;
+      }
+      #ifdef MP3PLAYER
+      if(playAlert) dfPlayer.playFolder(wifi_connecting);
+      #endif
+      LOG(printf_P, PSTR("WiFi connecting... \n"));
       swapBuffers(true);
+    } else {
+      #ifdef MP3PLAYER
+      if(playAlert) dfPlayer.playFolder(wifi_connected);
+      #endif
+
       fillScreen(0);
+      setFont();
+      setCursor(13, 5);
+      setTextColor(embui.sysData.wifi_sta ? myGREEN : myRED);
+      println(embui.sysData.wifi_sta ? "WiFi OK" : "WiFi AP");
+      setCursor(1, 18);
+      setFont(&TomThumb);
+      setTextColor(myBLUE);
+      println(embui.sysData.wifi_sta ? WiFi.localIP().toString() : "192.168.4.1");
+      if (!showIp) showIp = millis();
     }
-    if (showIp + 3000 > millis()) return;
-      switch (l){
-      case 7: drawRGBBitmap(0, 0, image_01, 64, 32);
-      break;
-      case 8: drawRGBBitmap(0, 0, image_02, 64, 32);
-      break;
-      case 9: drawRGBBitmap(0, 0, image_03, 64, 32);
-      break;
-      case 10: drawRGBBitmap(0, 0, image_04, 64, 32);
-      break;
-      case 11: drawRGBBitmap(0, 0, image_05, 64, 32);
-      break;
-      case 12: drawRGBBitmap(0, 0, image_06, 64, 32);
-      break;
-      case 13: drawRGBBitmap(0, 0, image_07, 64, 32);
-      break;
-      case 14: drawRGBBitmap(0, 0, image_08, 64, 32);
-      break;
-      case 15: drawRGBBitmap(0, 0, image_09, 64, 32);
-      break;
-      case 16: drawRGBBitmap(0, 0, image_10, 64, 32);
-      break;
-    }
-    if (l >= 7) l++;
-    if (l==22) mtxStarted = true;
-    swapBuffers(true);
   }
+
+    if (!showIp) return;
+    if (showIp + 4000 > millis()) return;
+
+    if (!i) fillScreen(0);
+
+    switch (i){
+      case 0: drawRect(16, 15, 32, 2, myBLUE);
+      break;
+
+      case 1: 
+      drawRect(13, 13, 38, 6, myBLUE);
+      drawRect(12, 12, 40, 8, myBLUE);
+      break;
+
+      case 2: 
+      drawRect(9, 9, 46, 14, myBLUE);
+      drawRect(8, 8, 48, 16, myBLUE);
+      break;
+
+      case 3:
+      drawRect(5, 5, 54, 22, myBLUE);
+      drawRect(4, 4, 56, 24, myBLUE);
+      break;
+
+      case 4: 
+      drawRect(1, 1, 62, 30, myBLUE);
+      drawRect(0, 0, 64, 32, myBLUE);
+      break;
+
+      case 5: 
+      drawRect(16, 15, 32, 2, myBLACK);
+      break;
+
+      case 6: 
+      drawRect(13, 13, 38, 6, myBLACK);
+      drawRect(12, 12, 40, 8, myBLACK);
+      break;
+
+      case 7: 
+      drawRect(9, 9, 46, 14, myBLACK);
+      drawRect(8, 8, 48, 16, myBLACK);
+      break;
+
+      case 8:
+      drawRect(5, 5, 54, 22, myBLACK);
+      drawRect(4, 4, 56, 24, myBLACK);
+      break;
+
+      case 9: drawRGBBitmap(2, 4, image_10, 60, 24);
+      break;
+
+    }
+    i++;
+    if (i==15) mtxStarted = true;
+
+  // }
 }
  
 // Функция для времени в нужном формате
@@ -161,13 +209,16 @@ String MTX::getTime(){
 
 
 void MTX::getWeather(){
+
+  // Выводим надпись "погода"
   fillScreen(0);
   setFont();
-  fillRect(0, 0, 64, 32, myBLACK);
-  setCursor(13, -2);
+  setCursor(13, -1);
   setTextColor(myYELLOW);
   setFont(&Heebo7pt8b);
-  println(utf8rus("погода"));
+  println("погода");
+
+  // Погода на сегодня
   setFont();
   if (getMDay() < 10) setCursor(7, 7); 
   else setCursor(2, 7);
@@ -175,13 +226,15 @@ void MTX::getWeather(){
   setFont(&TomThumb);
   setTextColor(myGREEN);
   print(getMDay());
+
   setFont();
-  setCursor(4, 25);
+  setCursor(2, 25);
   setTextSize(1);
   setFont(&TomThumb);
   setTextColor(myRED);
-  // if ( location_temp > 0 ) texttemp = "+" ;  // ТЕМПЕРАТУРА
   print(weather.getWeathTemp());
+
+  // Погода на завтра
   setTextSize(1);
   setFont();
   if (getMDay() < 10) setCursor(57, 7);
@@ -189,12 +242,15 @@ void MTX::getWeather(){
   setFont(&TomThumb);
   setTextColor(myGREEN);
   print(getTomorrow());
+
   setFont();
   setCursor(39, 25);
   setTextSize(1);
   setFont(&TomThumb);
   setTextColor(myRED);
   print(weather.getWeathTempTmrw());
+
+  // Время
   setFont();
   setCursor(21, 9);
   setTextSize(1);
@@ -202,236 +258,208 @@ void MTX::getWeather(){
   setTextColor(myRED);
   println(getTime());
   setFont();
+
+  // Берем изображение погоды
   getImage();
     
 }
 
-void MTX::getImage()
-{
+/// Изображения значков погоды для экрана getWeather() (weatherbit.io)
+void MTX::getImage() {
   switchAnim=!switchAnim;
   switch (weather.image()) {            // задать с монитора
-      case 200: //Гроза с небольшим дождем
-      case 201: // Гроза с дождем
-      case 202: // гроза с сильным дождем
-      case 210: // Легкая гроза
-      case 211: // Гроза
-      case 212: // Сильная гроза
-      case 221: // Рваная гроза
-      case 230: // Гроза с мелким дождиком
-      case 231: // Гроза с моросью
-      case 232: // Гроза с сильным дождиком
-       
-     if (switchAnim) drawRGBBitmap(10, 14, image_data_Image14, 10, 10); else drawRGBBitmap(10, 14, image_data_Image15, 10, 10);
+    case 200: //Гроза с небольшим дождем
+    case 201: // Гроза с дождем
+    case 202: // гроза с сильным дождем
+    case 210: // Легкая гроза
+    case 211: // Гроза
+    case 212: // Сильная гроза
+    case 221: // Рваная гроза
+    case 230: // Гроза с мелким дождиком
+    case 231: // Гроза с моросью
+    case 232: // Гроза с сильным дождиком
 
-     
-        break;
-      case 300: // Слабая морось
-      case 301: // Морось
-      case 302: // Сильный дождь
-      case 310: // Моросящий дождь
-      case 311: // Моросящий дождь
-      case 312: // Сильный моросящий дождь
-      case 500: // Легкий дождь
-      case 501: // Умеренный дождь
-      case 511: // Холодный дождь
-      case 521: // Дождь
-      case 531: // Рваный дождь
-      case 613: // Мокрый дождь
-     
-     if (switchAnim) drawRGBBitmap(10, 14, image_data_Image10, 10, 10); else drawRGBBitmap(10, 14, image_data_Image11, 10, 10);
+    if (switchAnim) drawRGBBitmap(10, 14, image_data_Image14, 10, 10); else drawRGBBitmap(10, 14, image_data_Image15, 10, 10);
+    break;
 
+    case 300: // Слабая морось
+    case 301: // Морось
+    case 302: // Сильный дождь
+    case 310: // Моросящий дождь
+    case 311: // Моросящий дождь
+    case 312: // Сильный моросящий дождь
+    case 500: // Легкий дождь
+    case 501: // Умеренный дождь
+    case 511: // Холодный дождь
+    case 521: // Дождь
+    case 531: // Рваный дождь
+    case 613: // Мокрый дождь
      
-        break;
-      case 313: // Ливень, дождь и изморозь
-      case 314: // Сильный ливень дождь и изморозь
-      case 502: // Сиильный дождь
-      case 503: // Очень сильный дождь
-      case 504: // Сильный дождь
-      case 520: // Темно, ливень
-      case 522: // Сильный пролевной дождь
-     
-     if (switchAnim) drawRGBBitmap(10, 14, image_data_Image8, 10, 10); else drawRGBBitmap(10, 14, image_data_Image9, 10, 10);
+    if (switchAnim) drawRGBBitmap(10, 14, image_data_Image10, 10, 10); else drawRGBBitmap(10, 14, image_data_Image11, 10, 10);
+    break;
 
+    case 313: // Ливень, дождь и изморозь
+    case 314: // Сильный ливень дождь и изморозь
+    case 502: // Сиильный дождь
+    case 503: // Очень сильный дождь
+    case 504: // Сильный дождь
+    case 520: // Темно, ливень
+    case 522: // Сильный пролевной дождь
      
-       break;
+    if (switchAnim) drawRGBBitmap(10, 14, image_data_Image8, 10, 10); else drawRGBBitmap(10, 14, image_data_Image9, 10, 10);
+    break;
       
-      case 601: // Снег
-      case 602: // Сильный снегопад
-      case 622: // Сильный снегопад
+    case 601: // Снег
+    case 602: // Сильный снегопад
+    case 622: // Сильный снегопад
       
-     if (switchAnim) drawRGBBitmap(10, 14, image_data_Image4, 10, 10); else drawRGBBitmap(10, 14, image_data_Image5, 10, 10);
-
-     
-      case 600: //легкий снег
-      case 610: // Снег с дождем
-      case 611: // Мокрый снег
-      case 612: // Легкий дождь со снегом
-      case 615: //Небольшой дождь и снег
-      case 616: // Дождь и снег
-      case 620: // Легкий снегопад
-      case 621: // Ливень и снег
+    if (switchAnim) drawRGBBitmap(10, 14, image_data_Image4, 10, 10); else drawRGBBitmap(10, 14, image_data_Image5, 10, 10);
+    
+    case 600: //легкий снег
+    case 610: // Снег с дождем
+    case 611: // Мокрый снег
+    case 612: // Легкий дождь со снегом
+    case 615: //Небольшой дождь и снег
+    case 616: // Дождь и снег
+    case 620: // Легкий снегопад
+    case 621: // Ливень и снег
       
-     if (switchAnim) drawRGBBitmap(10, 14, image_data_Image6, 10, 10); else drawRGBBitmap(10, 14, image_data_Image7, 10, 10);
+    if (switchAnim) drawRGBBitmap(10, 14, image_data_Image6, 10, 10); else drawRGBBitmap(10, 14, image_data_Image7, 10, 10);
+    break;
 
-     
-       break;
-      case 701: // Туман
-      case 711: // Дым
-      case 721: // Мгла
-      case 731: // Песчаная буря
-      case 741: // Туман
-      case 751: // Песок
-      case 761: // Пыль
-      case 762: // Вулканический пепел
-      case 771: // Шквал
-      case 781: // Торнадо
-      //int zik = 0;
-      //for (int zik = 0; zik < 100; zik ++){
-     if (switchAnim) drawRGBBitmap(10, 14, image_data_Image2, 10, 10); else drawRGBBitmap(10, 14, image_data_Image3, 10, 10);
+    case 701: // Туман
+    case 711: // Дым
+    case 721: // Мгла
+    case 731: // Песчаная буря
+    case 741: // Туман
+    case 751: // Песок
+    case 761: // Пыль
+    case 762: // Вулканический пепел
+    case 771: // Шквал
+    case 781: // Торнадо
+    
+    if (switchAnim) drawRGBBitmap(10, 14, image_data_Image2, 10, 10); else drawRGBBitmap(10, 14, image_data_Image3, 10, 10);
+    break;
 
-     
-      //}
-        break;
-      case 800: // Ясно, чистое небо
-      if (getHour() < 21 && getHour() > 6){ 
-     if (switchAnim) drawRGBBitmap(10, 14, image_data_Image, 10, 10); else drawRGBBitmap(10, 14, image_data_Image1, 10, 10);
+    case 800: // Ясно, чистое небо
+    if (getHour() < 21 && getHour() > 6){ 
+    if (switchAnim) drawRGBBitmap(10, 14, image_data_Image, 10, 10); else drawRGBBitmap(10, 14, image_data_Image1, 10, 10);
 
-     
-      }else{
+    }else{
       if (switchAnim) drawRGBBitmap(10, 14, image_data_Image20, 10, 10); else drawRGBBitmap(10, 14, image_data_Image21, 10, 10);
+    }
+    break;
 
-     
-         
-      }
-       break;
-      case 801: // Мало облачно 25%
-      case 802: // Облано 50%
-      case 803: // Облачно 80%
-      if (getHour() < 21 && getHour() > 6){
+    case 801: // Мало облачно 25%
+    case 802: // Облано 50%
+    case 803: // Облачно 80%
+
+    if (getHour() < 21 && getHour() > 6){
       if (switchAnim) drawRGBBitmap(10, 14, image_data_Image16, 10, 10); else drawRGBBitmap(10, 14, image_data_Image17, 10, 10);
- 
-    
-      }else{
+    }else{
       if (switchAnim) drawRGBBitmap(10, 14, image_data_Image18, 10, 10); else drawRGBBitmap(10, 14, image_data_Image19, 10, 10);
+    }
+    break;
 
-      
-      }
-       break;
-      case 804: // Пасмурно 100%
-       
-     if (switchAnim) drawRGBBitmap(10, 14, image_data_Image12, 10, 10); else drawRGBBitmap(10, 14, image_data_Image13, 10, 10);
+    case 804: // Пасмурно 100%
 
-     
-        break;
+  if (switchAnim) drawRGBBitmap(10, 14, image_data_Image12, 10, 10); else drawRGBBitmap(10, 14, image_data_Image13, 10, 10);
+    break;
   }
-    switch (weather.image()) {      //ЗАДАТЬ С МОНИТОРА
-      case 200: //Гроза с небольшим дождем
-      case 201: // Гроза с дождем
-      case 202: // гроза с сильным дождем
-      case 210: // Легкая гроза
-      case 211: // Гроза
-      case 212: // Сильная гроза
-      case 221: // Рваная гроза
-      case 230: // Гроза с мелким дождиком
-      case 231: // Гроза с моросью
-      case 232: // Гроза с сильным дождиком
+
+  switch (weather.image()) {      //ЗАДАТЬ С МОНИТОРА
+    case 200: //Гроза с небольшим дождем
+    case 201: // Гроза с дождем
+    case 202: // гроза с сильным дождем
+    case 210: // Легкая гроза
+    case 211: // Гроза
+    case 212: // Сильная гроза
+    case 221: // Рваная гроза
+    case 230: // Гроза с мелким дождиком
+    case 231: // Гроза с моросью
+    case 232: // Гроза с сильным дождиком
        
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image14, 10, 10); else drawRGBBitmap(44, 14, image_data_Image15, 10, 10);
-
-     
-        break;
-      case 300: // Слабая морось
-      case 301: // Морось
-      case 302: // Сильный дождь
-      case 310: // Моросящий дождь
-      case 311: // Моросящий дождь
-      case 312: // Сильный моросящий дождь
-      case 500: // Легкий дождь
-      case 501: // Умеренный дождь
-      case 511: // Холодный дождь
-      case 521: // Дождь
-      case 531: // Рваный дождь
-      case 613: // Мокрый дождь
-     
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image10, 10, 10); else drawRGBBitmap(44, 14, image_data_Image11, 10, 10);
-
-     
-        break;
-      case 313: // Ливень, дождь и изморозь
-      case 314: // Сильный ливень дождь и изморозь
-      case 502: // Сиильный дождь
-      case 503: // Очень сильный дождь
-      case 504: // Сильный дождь
-      case 520: // Темно, ливень
-      case 522: // Сильный пролевной дождь
-     
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image8, 10, 10); else drawRGBBitmap(44, 14, image_data_Image9, 10, 10);
-
-     
-       break;
-      
-      case 601: // Снег
-      case 602: // Сильный снегопад
-      case 622: // Сильный снегопад
-      
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image4, 10, 10); else drawRGBBitmap(44, 14, image_data_Image5, 10, 10);
-
-     
-      case 600: //легкий снег
-      case 610: // Снег с дождем
-      case 611: // Мокрый снег
-      case 612: // Легкий дождь со снегом
-      case 615: //Небольшой дождь и снег
-      case 616: // Дождь и снег
-      case 620: // Легкий снегопад
-      case 621: // Ливень и снег
-      
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image6, 10, 10); else drawRGBBitmap(44, 14, image_data_Image7, 10, 10);
-
-     
-       break;
-      case 701: // Туман
-      case 711: // Дым
-      case 721: // Мгла
-      case 731: // Песчаная буря
-      case 741: // Туман
-      case 751: // Песок
-      case 761: // Пыль
-      case 762: // Вулканический пепел
-      case 771: // Шквал
-      case 781: // Торнадо
-      //int zik = 0;
-      //for (int zik = 0; zik < 100; zik ++){
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image2, 10, 10); else drawRGBBitmap(44, 14, image_data_Image3, 10, 10);
-
-     
-      //}
-        break;
-      case 800: // Ясно, чистое небо
-       
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image, 10, 10); else drawRGBBitmap(44, 14, image_data_Image1, 10, 10);
-
-     
-      
-       break;
-      case 801: // Мало облачно 25%
-      case 802: // Облано 50%
-      case 803: // Облачно 80%
-      
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image16, 10, 10); else drawRGBBitmap(44, 14, image_data_Image17, 10, 10);
-
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image14, 10, 10); else drawRGBBitmap(44, 14, image_data_Image15, 10, 10);
+    break;
+    case 300: // Слабая морось
+    case 301: // Морось
+    case 302: // Сильный дождь
+    case 310: // Моросящий дождь
+    case 311: // Моросящий дождь
+    case 312: // Сильный моросящий дождь
+    case 500: // Легкий дождь
+    case 501: // Умеренный дождь
+    case 511: // Холодный дождь
+    case 521: // Дождь
+    case 531: // Рваный дождь
+    case 613: // Мокрый дождь
     
-       break;
-      case 804: // Пасмурно 100%
-       
-     if (switchAnim) drawRGBBitmap(44, 14, image_data_Image12, 10, 10); else drawRGBBitmap(44, 14, image_data_Image13, 10, 10);
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image10, 10, 10); else drawRGBBitmap(44, 14, image_data_Image11, 10, 10);
+    break;
+    case 313: // Ливень, дождь и изморозь
+    case 314: // Сильный ливень дождь и изморозь
+    case 502: // Сиильный дождь
+    case 503: // Очень сильный дождь
+    case 504: // Сильный дождь
+    case 520: // Темно, ливень
+    case 522: // Сильный пролевной дождь
+    
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image8, 10, 10); else drawRGBBitmap(44, 14, image_data_Image9, 10, 10);
+    break;
+    case 601: // Снег
+    case 602: // Сильный снегопад
+    case 622: // Сильный снегопад
+    
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image4, 10, 10); else drawRGBBitmap(44, 14, image_data_Image5, 10, 10);
+    break;
+    
+    case 600: //легкий снег
+    case 610: // Снег с дождем
+    case 611: // Мокрый снег
+    case 612: // Легкий дождь со снегом
+    case 615: //Небольшой дождь и снег
+    case 616: // Дождь и снег
+    case 620: // Легкий снегопад
+    case 621: // Ливень и снег
+    
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image6, 10, 10); else drawRGBBitmap(44, 14, image_data_Image7, 10, 10);
+    break;
 
-     
-        break;
+    case 701: // Туман
+    case 711: // Дым
+    case 721: // Мгла
+    case 731: // Песчаная буря
+    case 741: // Туман
+    case 751: // Песок
+    case 761: // Пыль
+    case 762: // Вулканический пепел
+    case 771: // Шквал
+    case 781: // Торнадо
+
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image2, 10, 10); else drawRGBBitmap(44, 14, image_data_Image3, 10, 10);
+    break;
+
+    case 800: // Ясно, чистое небо
+      
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image, 10, 10); else drawRGBBitmap(44, 14, image_data_Image1, 10, 10);  
+    break;
+
+    case 801: // Мало облачно 25%
+    case 802: // Облано 50%
+    case 803: // Облачно 80%
+    
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image16, 10, 10); else drawRGBBitmap(44, 14, image_data_Image17, 10, 10);
+    break;
+
+    case 804: // Пасмурно 100%
+      
+    if (switchAnim) drawRGBBitmap(44, 14, image_data_Image12, 10, 10); else drawRGBBitmap(44, 14, image_data_Image13, 10, 10);
+    break;
   }
   
 }
 
+/// Экран "дома"
 void MTX::getHome(){
   fillScreen(0);
   fillRect(0, 0, 64, 32, myBLACK);
@@ -442,14 +470,14 @@ void MTX::getHome(){
   setTextColor(myBLUE);
   println(getTime());
   setFont();
-  setCursor(4, -2);
+  setCursor(4, -1);
   setFont(&Heebo7pt8b);
-  println(utf8rus("дома"));
+  println("дома");
   setTextSize(1);
   setFont(&TomThumb);
   setCursor(13, 15);
   setTextColor(myRED);
-  println(sens.getPress());
+  println(sens.getPress()+ " mmMs");
   setCursor(13, 28);
   setTextColor(myRED);
   println(sens.getTemp());    // температура
@@ -473,42 +501,41 @@ void MTX::getHome(){
 
 }
 
+/// Главный экран часов (дневной режим)
 void MTX::getClock(){
+  // Будет крутить подготовку за 2 минуты до смены на ночной режим. 
   if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
       drawLine(55, 8, 63, 8, myBLACK);
       drawLine(55, 7, 63, 7, myBLACK);
       sendStringToMtx("Подготовка к ночному режиму");
   }
-  // else {
-    // fillRect(46, 10, 2, 13, myBLACK);
-    // drawLine(0, 7, 63, 7, myBLACK);
-    // setTextColor(myMAGENTA);
 
-
-    // scroll_text(24, frameDelay - 4, (weatherString));       // show text
-    // scroll_text(24, frameDelay - 4, (weatherStringZ));    // show text
+  // Блок вывода дня недели (котороткий)
     fillRect(0, 0, 64, 22, myBLACK);
     setFont();
     setCursor(49,8);
     // drawLine(55, 7, 9, 7, myBLACK);
-    setTextColor(myRED);
+    if (getWDay() == 0 || getWDay() == 6) setTextColor(myRED);
+    else setTextColor(myCYAN);
     setFont(&kongtext4pt7b);
     print(getWDayShort());
 
-
+//  Вывод дня месяца
     setFont();
     if (getMDay() < 10) setCursor(5,-1);
     else setCursor(9,0);
-    setTextColor(myRED);
+    setTextColor(myYELLOW);
     setFont(&kongtext4pt7b);
     print(getMDay());
 
+//  Вывод месяца (текст)
     setFont();
     setCursor(22,0);
     setFont(&Heebo7pt8b);
     setTextColor(myGREEN);
-    print(utf8rus(getMonthTxt()));
+    print(getMonthTxt());
     
+//  Вывод секунд
     setFont();
     setCursor(49,15);
     setTextColor(myGREEN);
@@ -516,6 +543,7 @@ void MTX::getClock(){
     if (getSec() < 10) print("0" + String(getSec()));
     else print(getSec());
 
+//  Вывод часов
     setFont();
     setCursor(1, 15);
     setTextColor(myGREEN);
@@ -524,14 +552,9 @@ void MTX::getClock(){
     setTextSize(1);
     print(getTime());
 
-    // sendStringToMtx("АБВ");
-    // sendStringToMtx("ПРОВЕРКА Проверка");
-    // sendStringToMtx("Сегодня отличная погода!");
-  // }
-
 }
 
-
+/// Функция отправки строки на матрицу
 void MTX::sendStringToMtx(const char* text, bool forcePrint, bool clearQueue, int8_t textOffset, const int16_t fixedPos)
 {
   // if((!flags.ONflag && !forcePrint) || (isAlarm() && !forcePrint)) return; // если выключена, или если будильник, но не задан принудительный вывод - то на выход
@@ -753,48 +776,15 @@ void MTX::getNightMode(){
 }
 
 
-// ================================ Вывод Русских Букв
-String MTX::utf8rus(String source)
-{
-  int i,k;
-  String target;
-  unsigned char n;
-  char m[2] = { '0', '\0' };
-
-  k = source.length(); i = 0;
-
-  while (i < k) {
-    n = source[i]; i++;
-
-    if (n >= 0xC0) {
-      switch (n) {
-        case 0xD0: {
-          n = source[i]; i++;
-          if (n == 0x81) { n = 0xA8; break; }
-          if (n >= 0x90 && n <= 0xBF) n = n + 0x30;
-          break;
-        }
-        case 0xD1: {
-          n = source[i]; i++;
-          if (n == 0x91) { n = 0xB8; break; }
-          if (n >= 0x80 && n <= 0x8F) n = n + 0x70;
-          break;
-        }
-      }
-    }
-    m[0] = n; target = target + String(m);
-  }
-return target;
-}
-
-// char * MTX::utf8rus(String source)
+// // ================================ Вывод Русских Букв
+// String MTX::utf8rus(String source)
 // {
 //   int i,k;
-//   // String target;
+//   String target;
 //   unsigned char n;
 //   char m[2] = { '0', '\0' };
+
 //   k = source.length(); i = 0;
-//   char target[100];
 
 //   while (i < k) {
 //     n = source[i]; i++;
@@ -815,7 +805,7 @@ return target;
 //         }
 //       }
 //     }
-//     m[0] = n; target = target + char(m);
+//     m[0] = n; target = target + String(m);
 //   }
 // return target;
 // }
