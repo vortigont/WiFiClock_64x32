@@ -142,50 +142,53 @@ void MTX::start() {
     if (!i) fillScreen(0);
 
     switch (i){
-      case 0: drawRect(16, 15, 32, 2, myBLUE);
-      break;
+
+      case 0:
+        drawRect(16, 15, 32, 2, myBLUE);
+        break;
 
       case 1: 
-      drawRect(13, 13, 38, 6, myBLUE);
-      drawRect(12, 12, 40, 8, myBLUE);
-      break;
+        drawRect(13, 13, 38, 6, myBLUE);
+        drawRect(12, 12, 40, 8, myBLUE);
+        break;
 
       case 2: 
-      drawRect(9, 9, 46, 14, myBLUE);
-      drawRect(8, 8, 48, 16, myBLUE);
-      break;
+        drawRect(9, 9, 46, 14, myBLUE);
+        drawRect(8, 8, 48, 16, myBLUE);
+        break;
 
       case 3:
-      drawRect(5, 5, 54, 22, myBLUE);
-      drawRect(4, 4, 56, 24, myBLUE);
-      break;
+        drawRect(5, 5, 54, 22, myBLUE);
+        drawRect(4, 4, 56, 24, myBLUE);
+        break;
 
       case 4: 
-      drawRect(1, 1, 62, 30, myBLUE);
-      drawRect(0, 0, 64, 32, myBLUE);
-      break;
+        drawRect(1, 1, 62, 30, myBLUE);
+        drawRect(0, 0, 64, 32, myBLUE);
+        break;
 
       case 5: 
-      drawRect(16, 15, 32, 2, myBLACK);
-      break;
+        drawRect(16, 15, 32, 2, myBLACK);
+        break;
 
       case 6: 
-      drawRect(13, 13, 38, 6, myBLACK);
-      drawRect(12, 12, 40, 8, myBLACK);
-      break;
+        drawRect(13, 13, 38, 6, myBLACK);
+        drawRect(12, 12, 40, 8, myBLACK);
+        break;
 
       case 7: 
-      drawRect(9, 9, 46, 14, myBLACK);
-      drawRect(8, 8, 48, 16, myBLACK);
-      break;
+        drawRect(9, 9, 46, 14, myBLACK);
+        drawRect(8, 8, 48, 16, myBLACK);
+        break;
 
       case 8:
-      drawRect(5, 5, 54, 22, myBLACK);
-      drawRect(4, 4, 56, 24, myBLACK);
-      break;
+        drawRect(5, 5, 54, 22, myBLACK);
+        drawRect(4, 4, 56, 24, myBLACK);
+        break;
 
-      case 9: drawRGBBitmap(2, 4, image_10, 60, 24);
-      break;
+      case 9:
+        drawRGBBitmap(2, 4, image_10, 60, 24);
+        break;
 
     }
     i++;
@@ -262,6 +265,308 @@ void MTX::getWeather(){
   // Берем изображение погоды
   getImage();
     
+}
+
+
+/// Экран "дома"
+void MTX::getHome(){
+
+  fillScreen(0);
+  fillRect(0, 0, 64, 32, myBLACK);
+  setFont();
+  setCursor(42, 0);
+  setTextSize(1);
+  setFont(&TomThumb);
+  setTextColor(myBLUE);
+  println(getTime());
+
+  setFont();
+  setCursor(4, -1);
+  setFont(&Heebo7pt8b);
+  println("дома");
+
+  setTextSize(1);
+  setFont(&TomThumb);
+  setCursor(13, 15);
+  setTextColor(myRED);
+  println(sens.getPress()+ " mmMs");
+
+  setCursor(10, 28);
+  setTextColor(myRED);
+  println(sens.getTemp());    // температура
+
+  setCursor(49, 28);
+  setTextColor(myRED);
+  println(sens.getHum());   //влажность
+  setFont();
+
+  switchAnim=!switchAnim;
+  if (switchAnim) {
+  drawRGBBitmap(0, 7, image_data_Image24, 12, 12);
+  drawRGBBitmap(0, 20, image_data_Image22, 12, 12);
+  drawRGBBitmap(38, 20, image_data_Image26, 10, 12);
+  drawRGBBitmap(52, 9, image_data_Image28, 12, 12);
+  }
+  else {
+  drawRGBBitmap(0, 7, image_data_Image25, 12, 12);
+  drawRGBBitmap(0, 20, image_data_Image23, 12, 12);
+  drawRGBBitmap(38, 20, image_data_Image27, 10, 12);
+  drawRGBBitmap(52, 9, image_data_Image29, 12, 12);
+  }
+
+}
+
+/// Главный экран часов (дневной режим)
+void MTX::getClock(){
+  // Будет крутить подготовку за 2 минуты до смены на ночной режим. 
+  if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
+      drawLine(55, 8, 63, 8, myBLACK);
+      drawLine(55, 7, 63, 7, myBLACK);
+      sendStringToMtx("Подготовка к ночному режиму");
+  }
+
+    fillRect(0, 0, 64, 22, myBLACK); // Очищаем экран (не затрагивая бегущую строку)
+
+  // Блок вывода дня недели (котороткий)
+    setFont();
+    setCursor(49,8);
+    // drawLine(55, 7, 9, 7, myBLACK);
+    if (getWDay() == 0 || getWDay() == 6) setTextColor(myRED);
+    else setTextColor(myBLUE);
+    setFont(&kongtext4pt7b);
+    print(getWDayShort());
+
+  //  Вывод дня месяца
+    setFont();
+    if (getMDay() < 10) setCursor(5,-1);
+    else setCursor(9,0);
+    setTextColor(myYELLOW);
+    setFont(&kongtext4pt7b);
+    print(getMDay());
+
+  //  Вывод месяца (текст)
+    setFont();
+    setCursor(22,0);
+    setFont(&Heebo7pt8b);
+    setTextColor(myGREEN);
+    print(getMonthTxt());
+    
+  //  Вывод секунд
+    setFont();
+    setCursor(49,15);
+    setTextColor(myGREEN);
+    setFont(&kongtext4pt7b);
+    if (getSec() < 10) print("0" + String(getSec()));
+    else print(getSec());
+
+  // Вывод часов
+    setFont();
+    setCursor(1, 15);
+    setTextColor(myGREEN);
+    fillRect(0, 8, 20, 15, myBLACK);
+    setFont(&FreeSansBold9pt7b);
+    setTextSize(1);
+    print(getTime());
+
+}
+
+/// Функция отправки строки на матрицу
+void MTX::sendStringToMtx(const char* text, bool forcePrint, bool clearQueue, int8_t textOffset, const int16_t fixedPos)
+{
+  // if((!flags.ONflag && !forcePrint) || (isAlarm() && !forcePrint)) return; // если выключена, или если будильник, но не задан принудительный вывод - то на выход
+  if(textOffset==-128) textOffset=this->txtOffset;
+
+  if(text==nullptr){ // текст пустой
+    if(!isStringPrinting){ // ничего сейчас не печатается
+      if(!docArrMessages){ // массив пустой
+        return; // на выход
+      }
+      else { // есть что печатать
+        JsonArray arr = (*docArrMessages).as<JsonArray>(); // используем имеющийся
+        JsonObject var=arr[0]; // извлекаем очередной
+        if(!var.isNull()){
+          String storage = var[F("s")];
+          prepareText(storage);
+          doPrintStringToMtx(storage.c_str(), (var[F("o")].as<int>()), (var[F("f")].as<int>())); // отправляем
+#ifdef MP3PLAYER
+          String tmpStr = var[F("s")];
+          if(mp3!=nullptr && ((mp3->isOn() && isLampOn()) || isAlarm()) && flags.playTime && tmpStr.indexOf(String(F("%TM")))>=0)
+            mp3->playTime(embui.timeProcessor.getHours(), embui.timeProcessor.getMinutes(), (TIME_SOUND_TYPE)flags.playTime);
+#endif
+        }
+        if(arr.size()>0)
+          arr.remove(0); // удаляем отправленный
+        if(!arr.size()){ // очередь опустела, освобождаем массив
+          delete docArrMessages;
+          docArrMessages = nullptr;
+        }
+      }
+    } else {
+        // текст на входе пустой, идет печать
+        return; // на выход
+    }
+  } else { // текст не пустой
+    if(clearQueue){
+      LOG(println, F("Clear message queue"));
+      if(docArrMessages){ // очистить очередь, освободить память
+          delete docArrMessages;
+          docArrMessages = nullptr;
+      }
+      isStringPrinting = false; // сбросить текущий вывод строки
+    }
+
+    if(!isStringPrinting){ // ничего сейчас не печатается
+      String storage = text;
+      prepareText(storage);
+      doPrintStringToMtx(storage.c_str(), textOffset, fixedPos); // отправляем
+#ifdef MP3PLAYER
+      String tmpStr = text;
+      if(mp3!=nullptr && ((mp3->isOn() && isLampOn()) || isAlarm()) && flags.playTime && tmpStr.indexOf(String(F("%TM")))>=0)
+        mp3->playTime(embui.timeProcessor.getHours(), embui.timeProcessor.getMinutes(), (TIME_SOUND_TYPE)flags.playTime);
+#endif
+    } else { // идет печать, помещаем в очередь
+      JsonArray arr; // добавляем в очередь
+
+      if(docArrMessages){
+        arr = (*docArrMessages).as<JsonArray>(); // используем имеющийся
+      } else {
+        docArrMessages = new DynamicJsonDocument(1536);
+        arr = (*docArrMessages).to<JsonArray>(); // создаем новый
+      }
+
+      for (size_t i = 0; i < arr.size(); i++)
+      {
+        if((arr[i])[F("s")]==text
+        && (arr[i])[F("o")]==textOffset
+           && (arr[i])[F("f")]==fixedPos
+        ){
+          LOG(println, F("Duplicate string skipped"));
+          //LOG(println, (*docArrMessages).as<String>());
+          return;
+        }
+      }
+
+      JsonObject var = arr.createNestedObject();
+      var[F("s")]=text;
+      var[F("o")]=textOffset;
+      var[F("f")]=fixedPos;
+
+      String tmp; // Тут шаманство, чтобы не ломало JSON
+      serializeJson((*docArrMessages), tmp);
+      deserializeJson((*docArrMessages), tmp);
+
+      LOG(print, F("Array: "));
+      LOG(println, (*docArrMessages).as<String>());
+    }
+  }
+}
+
+void MTX::doPrintStringToMtx(const char* text, const int8_t textOffset, const int16_t fixedPos)
+{
+  static String toPrint;
+  setTextColor(myMAGENTA);
+
+  if(!isStringPrinting){
+    toPrint.clear();
+    // fillRect(0, 8, 64, 8, myBLACK);    //
+  }
+
+  isStringPrinting = true;
+  int8_t offs=(textOffset==-128?txtOffset:textOffset);
+  if(text!=nullptr && text[0]!='\0'){
+    toPrint.concat(text);
+    // _letterColor = letterColor;
+  }
+
+  if(toPrint.length()==0) {
+    isStringPrinting = false;
+    return; // нечего печатать
+  } else {
+    isStringPrinting = true;
+  }
+
+  if(tmStringStepTime.isReadyManual()){
+    if(!fillStringManual(toPrint.c_str(), false, 0, fixedPos, 0, offs)){ // смещаем
+      tmStringStepTime.reset();
+    }
+    else {
+      isStringPrinting = false;
+      toPrint.clear(); // все напечатали
+      sendStringToMtx(); // получаем новую порцию
+    } 
+  //   // if((!isWarning() || (isWarning() && fixedPos)))
+      fillStringManual(toPrint.c_str(), true);
+  }
+}
+
+typedef enum {FIRSTSYMB=1,LASTSYMB=2} SYMBPOS;
+
+bool MTX::fillStringManual(const char* text,  bool stopText, bool isInverse, int32_t pos, int8_t letSpace, int8_t txtOffset, int8_t letWidth, int8_t letHeight)
+{
+  static int32_t offset = MATRIX_WIDTH;
+  int16_t lenght = strlen(text);
+
+  if (!text || !strlen(text))
+  {
+    return true;
+  }
+
+    setFont();
+    fillRect(0, 22, 64, 12, myBLACK);
+    setCursor(offset, 24);
+    // setFont(&Heebo7pt8b);
+    print(text);
+    swapBuffers(true);
+  if(!stopText) {
+    offset--;   
+    }
+  if ((offset + lenght * 5 < 0 ))
+  {
+    offset = MATRIX_WIDTH;
+    lenght = 0;
+    return true;
+  }
+  // if(pos) // если задана позиция, то считаем что уже отобразили
+  // {
+  //   offset = (flags.MIRR_V ? 0 : WIDTH);
+  //   return true;
+  // }
+
+  return false;
+}
+
+
+String &MTX::prepareText(String &source){
+  source.replace(F("%TM"), embui.timeProcessor.getFormattedShortTime());
+  source.replace(F("%IP"), WiFi.localIP().toString());
+  // source.replace(F("%EN"), effects.getEffectName());
+  const tm *tm = localtime(embui.timeProcessor.now());
+  char buffer[11]; //"xx.xx.xxxx"
+  sprintf_P(buffer,PSTR("%02d.%02d.%04d"),tm->tm_mday,tm->tm_mon+1,tm->tm_year+TM_BASE_YEAR);
+  source.replace(F("%DT"), buffer);
+// #ifdef MATRIX_DEBUG  
+    LOG(println, source.c_str()); // вывести в лог строку, которая после преобразований получилась
+// #endif
+  return source;  
+}
+
+///   Заставка переключения дневного и ночного режима
+void MTX::getScreen(){
+  if (nightMode) drawRGBBitmap(0, 0, image_data_noch2, 64, 32);
+  else drawRGBBitmap(0, 0, image_data_ytro2, 64, 32);
+}
+
+///   Ночной режим
+void MTX::getNightMode(){
+  fillScreen(0);
+  setFont();
+  setCursor(8, 16);
+  setTextSize(1);
+  setFont(&FreeSansBold9pt7b);
+  setTextColor(Color333(0,0,2));
+  println(getTime());
+
+  if (MORNING_TIME == getHour()) showMorning = true;
 }
 
 /// Изображения значков погоды для экрана getWeather() (weatherbit.io)
@@ -459,321 +764,6 @@ void MTX::getImage() {
   
 }
 
-/// Экран "дома"
-void MTX::getHome(){
-  fillScreen(0);
-  fillRect(0, 0, 64, 32, myBLACK);
-  setFont();
-  setCursor(42, 0);
-  setTextSize(1);
-  setFont(&TomThumb);
-  setTextColor(myBLUE);
-  println(getTime());
-  setFont();
-  setCursor(4, -1);
-  setFont(&Heebo7pt8b);
-  println("дома");
-  setTextSize(1);
-  setFont(&TomThumb);
-  setCursor(13, 15);
-  setTextColor(myRED);
-  println(sens.getPress()+ " mmMs");
-  setCursor(13, 28);
-  setTextColor(myRED);
-  println(sens.getTemp());    // температура
-  setCursor(49, 28);
-  setTextColor(myRED);
-  println(sens.getHum());   //влажность
-  setFont();
-  switchAnim=!switchAnim;
-  if (switchAnim) {
-  drawRGBBitmap(0, 7, image_data_Image24, 12, 12);
-  drawRGBBitmap(0, 20, image_data_Image22, 12, 12);
-  drawRGBBitmap(38, 20, image_data_Image26, 10, 12);
-  drawRGBBitmap(52, 9, image_data_Image28, 12, 12);
-  }
-  else {
-  drawRGBBitmap(0, 7, image_data_Image25, 12, 12);
-  drawRGBBitmap(0, 20, image_data_Image23, 12, 12);
-  drawRGBBitmap(38, 20, image_data_Image27, 10, 12);
-  drawRGBBitmap(52, 9, image_data_Image29, 12, 12);
-  }
-
-}
-
-/// Главный экран часов (дневной режим)
-void MTX::getClock(){
-  // Будет крутить подготовку за 2 минуты до смены на ночной режим. 
-  if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
-      drawLine(55, 8, 63, 8, myBLACK);
-      drawLine(55, 7, 63, 7, myBLACK);
-      sendStringToMtx("Подготовка к ночному режиму");
-  }
-
-  // Блок вывода дня недели (котороткий)
-    fillRect(0, 0, 64, 22, myBLACK);
-    setFont();
-    setCursor(49,8);
-    // drawLine(55, 7, 9, 7, myBLACK);
-    if (getWDay() == 0 || getWDay() == 6) setTextColor(myRED);
-    else setTextColor(myCYAN);
-    setFont(&kongtext4pt7b);
-    print(getWDayShort());
-
-//  Вывод дня месяца
-    setFont();
-    if (getMDay() < 10) setCursor(5,-1);
-    else setCursor(9,0);
-    setTextColor(myYELLOW);
-    setFont(&kongtext4pt7b);
-    print(getMDay());
-
-//  Вывод месяца (текст)
-    setFont();
-    setCursor(22,0);
-    setFont(&Heebo7pt8b);
-    setTextColor(myGREEN);
-    print(getMonthTxt());
-    
-//  Вывод секунд
-    setFont();
-    setCursor(49,15);
-    setTextColor(myGREEN);
-    setFont(&kongtext4pt7b);
-    if (getSec() < 10) print("0" + String(getSec()));
-    else print(getSec());
-
-//  Вывод часов
-    setFont();
-    setCursor(1, 15);
-    setTextColor(myGREEN);
-    fillRect(0, 8, 20, 15, myBLACK);
-    setFont(&FreeSansBold9pt7b);
-    setTextSize(1);
-    print(getTime());
-
-}
-
-/// Функция отправки строки на матрицу
-void MTX::sendStringToMtx(const char* text, bool forcePrint, bool clearQueue, int8_t textOffset, const int16_t fixedPos)
-{
-  // if((!flags.ONflag && !forcePrint) || (isAlarm() && !forcePrint)) return; // если выключена, или если будильник, но не задан принудительный вывод - то на выход
-  if(textOffset==-128) textOffset=this->txtOffset;
-
-  if(text==nullptr){ // текст пустой
-    if(!isStringPrinting){ // ничего сейчас не печатается
-      if(!docArrMessages){ // массив пустой
-        return; // на выход
-      }
-      else { // есть что печатать
-        JsonArray arr = (*docArrMessages).as<JsonArray>(); // используем имеющийся
-        JsonObject var=arr[0]; // извлекаем очередной
-        if(!var.isNull()){
-          String storage = var[F("s")];
-          prepareText(storage);
-          doPrintStringToMtx(storage.c_str(), (var[F("o")].as<int>()), (var[F("f")].as<int>())); // отправляем
-#ifdef MP3PLAYER
-          String tmpStr = var[F("s")];
-          if(mp3!=nullptr && ((mp3->isOn() && isLampOn()) || isAlarm()) && flags.playTime && tmpStr.indexOf(String(F("%TM")))>=0)
-            mp3->playTime(embui.timeProcessor.getHours(), embui.timeProcessor.getMinutes(), (TIME_SOUND_TYPE)flags.playTime);
-#endif
-        }
-        if(arr.size()>0)
-          arr.remove(0); // удаляем отправленный
-        if(!arr.size()){ // очередь опустела, освобождаем массив
-          delete docArrMessages;
-          docArrMessages = nullptr;
-        }
-      }
-    } else {
-        // текст на входе пустой, идет печать
-        return; // на выход
-    }
-  } else { // текст не пустой
-    if(clearQueue){
-      LOG(println, F("Clear message queue"));
-      if(docArrMessages){ // очистить очередь, освободить память
-          delete docArrMessages;
-          docArrMessages = nullptr;
-      }
-      isStringPrinting = false; // сбросить текущий вывод строки
-    }
-
-    if(!isStringPrinting){ // ничего сейчас не печатается
-      String storage = text;
-      prepareText(storage);
-      doPrintStringToMtx(storage.c_str(), textOffset, fixedPos); // отправляем
-#ifdef MP3PLAYER
-      String tmpStr = text;
-      if(mp3!=nullptr && ((mp3->isOn() && isLampOn()) || isAlarm()) && flags.playTime && tmpStr.indexOf(String(F("%TM")))>=0)
-        mp3->playTime(embui.timeProcessor.getHours(), embui.timeProcessor.getMinutes(), (TIME_SOUND_TYPE)flags.playTime);
-#endif
-    } else { // идет печать, помещаем в очередь
-      JsonArray arr; // добавляем в очередь
-
-      if(docArrMessages){
-        arr = (*docArrMessages).as<JsonArray>(); // используем имеющийся
-      } else {
-        docArrMessages = new DynamicJsonDocument(1536);
-        arr = (*docArrMessages).to<JsonArray>(); // создаем новый
-      }
-
-      for (size_t i = 0; i < arr.size(); i++)
-      {
-        if((arr[i])[F("s")]==text
-        && (arr[i])[F("o")]==textOffset
-           && (arr[i])[F("f")]==fixedPos
-        ){
-          LOG(println, F("Duplicate string skipped"));
-          //LOG(println, (*docArrMessages).as<String>());
-          return;
-        }
-      }
-
-      JsonObject var = arr.createNestedObject();
-      var[F("s")]=text;
-      var[F("o")]=textOffset;
-      var[F("f")]=fixedPos;
-
-      String tmp; // Тут шаманство, чтобы не ломало JSON
-      serializeJson((*docArrMessages), tmp);
-      deserializeJson((*docArrMessages), tmp);
-
-      LOG(print, F("Array: "));
-      LOG(println, (*docArrMessages).as<String>());
-    }
-  }
-}
-
-void MTX::doPrintStringToMtx(const char* text, const int8_t textOffset, const int16_t fixedPos)
-{
-  static String toPrint;
-  setTextColor(myMAGENTA);
-
-  if(!isStringPrinting){
-    toPrint.clear();
-    // fillRect(0, 8, 64, 8, myBLACK);    //
-  }
-
-  isStringPrinting = true;
-  int8_t offs=(textOffset==-128?txtOffset:textOffset);
-  if(text!=nullptr && text[0]!='\0'){
-    toPrint.concat(text);
-    // _letterColor = letterColor;
-  }
-
-  if(toPrint.length()==0) {
-    isStringPrinting = false;
-    return; // нечего печатать
-  } else {
-    isStringPrinting = true;
-  }
-
-  if(tmStringStepTime.isReadyManual()){
-    if(!fillStringManual(toPrint.c_str(), false, 0, fixedPos, 0, offs)){ // смещаем
-      tmStringStepTime.reset();
-    }
-    else {
-      isStringPrinting = false;
-      toPrint.clear(); // все напечатали
-      sendStringToMtx(); // получаем новую порцию
-    } 
-  //   // if((!isWarning() || (isWarning() && fixedPos)))
-      fillStringManual(toPrint.c_str(), true);
-  }
-}
-
-typedef enum {FIRSTSYMB=1,LASTSYMB=2} SYMBPOS;
-
-bool MTX::fillStringManual(const char* text,  bool stopText, bool isInverse, int32_t pos, int8_t letSpace, int8_t txtOffset, int8_t letWidth, int8_t letHeight)
-{
-  static int32_t offset = MATRIX_WIDTH;
-  int16_t lenght = strlen(text);
-
-  if (!text || !strlen(text))
-  {
-    return true;
-  }
-
-    setFont();
-    fillRect(0, 22, 64, 12, myBLACK);
-    setCursor(offset, 24);
-    // setFont(&Heebo7pt8b);
-    print(text);
-    swapBuffers(true);
-  if(!stopText) {
-    offset--;   
-    }
-  if ((offset + lenght * 5 < 0 ))
-  {
-    offset = MATRIX_WIDTH;
-    lenght = 0;
-    return true;
-  }
-  // if(pos) // если задана позиция, то считаем что уже отобразили
-  // {
-  //   offset = (flags.MIRR_V ? 0 : WIDTH);
-  //   return true;
-  // }
-
-  return false;
-}
-
-
-String &MTX::prepareText(String &source){
-  source.replace(F("%TM"), embui.timeProcessor.getFormattedShortTime());
-  source.replace(F("%IP"), WiFi.localIP().toString());
-  // source.replace(F("%EN"), effects.getEffectName());
-  const tm *tm = localtime(embui.timeProcessor.now());
-  char buffer[11]; //"xx.xx.xxxx"
-  sprintf_P(buffer,PSTR("%02d.%02d.%04d"),tm->tm_mday,tm->tm_mon+1,tm->tm_year+TM_BASE_YEAR);
-  source.replace(F("%DT"), buffer);
-// #ifdef MATRIX_DEBUG  
-    LOG(println, source.c_str()); // вывести в лог строку, которая после преобразований получилась
-// #endif
-  return source;  
-}
-
-// void MTX::scrollText(String text, int scroll_delay)
-// {
-//   uint16_t text_length = text.length();
-//   int ypos = 24;
-//     if (int xpos = MATRIX_WIDTH; xpos > -(MATRIX_WIDTH + text_length * 5); xpos--)
-//   {
-//     setFont();
-//     setCursor(xpos, ypos);                //
-//     fillRect(0, ypos, 64, 8, myBLACK);    //
-//     setTextColor(myMAGENTA);              //
-//     print(utf8rus(text));                 //
-//     setFont();                            //
-//     delay(scroll_delay);                         //
-//     // yield();
-//   }
-  
-// }
-
-
-void MTX::getScreen(){
-  
-  // static unsigned long showScreen;
-  if (nightMode) drawRGBBitmap(0, 0, image_data_noch2, 64, 32);
-  else drawRGBBitmap(0, 0, image_data_ytro2, 64, 32);
-}
-
-
-void MTX::getNightMode(){
-  fillScreen(0);
-  setFont();
-  setCursor(8, 16);
-  setTextSize(1);
-  setFont(&FreeSansBold9pt7b);
-  setTextColor(Color333(0,0,2));
-  println(getTime());
-  // sendStringToMtx("TEST TEST TEST");
-  // sendStringToMtx("Сегодня отличная погода!");
-
-  if (MORNING_TIME == getHour()) showMorning = true;
-}
 
 
 // // ================================ Вывод Русских Букв
@@ -809,3 +799,4 @@ void MTX::getNightMode(){
 //   }
 // return target;
 // }
+

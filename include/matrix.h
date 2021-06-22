@@ -29,12 +29,12 @@ public:
 private:
 
     uint8_t frameDelay = 10;
-    uint16_t  animInterv = ANIM_INTERVAL;   /// интервал стартовой анимации
+    uint16_t  animInterv = ANIM_INTERVAL;
     bool isStringPrinting;
     String &prepareText(String &source);
     uint16_t scroll_interval = SCROLL_INTERVAL;
     int8_t textOffset;
-    DynamicJsonDocument *docArrMessages = nullptr; // массив сообщений для вывода на матрицу
+    DynamicJsonDocument *docArrMessages = nullptr;
     byte txtOffset = 0;
     bool mtxStarted = false;
     bool nightMode;
@@ -117,22 +117,19 @@ private:
         }
         return tommorrow;
     };
-    void start();  // Стартовая анимация часов (с подключением к WiFi и отображением IP)
-    void getClock();    // Главный экран часов (дневной режим)
-    void getHome();        // Погода дома (датчики)
-    void getWeather();          // Погода на улице (weatherbit.io)
-    void getNightMode();        // Ночной режим
-    void getScreen();           // Заставка переключения дневного и ночного режима
-    void getImage();            // Изображения значков погоды для экрана getWeather() (weatherbit.io)
-    void sendStringToMtx(const char* text = nullptr, bool forcePrint = false, bool clearQueue = false, const int8_t textOffset = -128, const int16_t fixedPos = 0);  // Функция отправки строки на матрицу
-    void doPrintStringToMtx(const char* text = nullptr, const int8_t textOffset = -128, const int16_t fixedPos = 0);    // Связана с отправкой текста на лампу
-    void setTextOffset(uint8_t val) { txtOffset=val;}                   // Пока особо не задействуется
+    void start();
+    void getClock();
+    void getHome();
+    void getWeather();
+    void getNightMode();
+    void getScreen();
+    void getImage();
+    void sendStringToMtx(const char* text = nullptr, bool forcePrint = false, bool clearQueue = false, const int8_t textOffset = -128, const int16_t fixedPos = 0);
+    void doPrintStringToMtx(const char* text = nullptr, const int8_t textOffset = -128, const int16_t fixedPos = 0);
+    void setTextOffset(uint8_t val) { txtOffset=val;}                   /// Пока особо не задействуется
     uint16_t _letterColor;
     timerMinim tmStringStepTime;    // шаг смещения строки, в мс
     bool fillStringManual(const char* text,  bool stopText = false, bool isInverse = false, int32_t pos = 0, int8_t letSpace = 1, int8_t txtOffset = 0, int8_t letWidth = 5, int8_t letHeight = 8); // -2147483648
-    void drawLetter(uint8_t bcount, uint16_t letter, int16_t offset,  uint8_t letSpace, int8_t txtOffset, bool isInverse, int8_t letWidth, int8_t letHeight, uint8_t flSymb=0);
-    String utf8rus(String source);
-    // char * utf8rus(String source);
 
 };
 
