@@ -9,37 +9,37 @@ Weather weather;
 
 
 void Weather::handle(){
+  if (!embui.sysData.wifi_sta) return;
   static uint32_t timer;
-  static int weatherCheck;
-  static unsigned long wait_handlers2;
-  if (weatherCheck < 3) {
-    if (wait_handlers2 + 4000 > millis())
+  if (!weatherCheck) return;
+  if (weatherCheck < 4) {
+    if (timer + 1000 > millis())
       return;
-    wait_handlers2 = millis();
+    timer = millis();
     switch (weatherCheck) {
-    case 0:
-      getToday();
-      weatherCheck++;
-      break;
     case 1:
-      getTomorrow();
-      weatherCheck++;
+      getToday();
+      // weatherCheck++;
       break;
     case 2:
+      getTomorrow();
+      // weatherCheck++;
+      break;
+    case 3:
       getNarodmon();
-      weatherCheck++;
+      // weatherCheck++;
       break;
     }
-  }
-  // LOG(printf_P, PSTR("TEMP Narodmon %s \n"), getNarodmonTemp().c_str());
-  if (millis() - timer >= 600*1000 && !matrix.isNightMode()) {
-    timer += 600*1000;
-    do {
-      if (timer < 600*1000) break; 
+  } else{
+    if (millis() - timer >= 600*1000 && !matrix.isNightMode()) {
+      timer += 600*1000;
+      if (timer < 600*1000) return; 
       getToday();
       getTomorrow();
       getNarodmon();
-    } while (timer < millis() - 600*1000);
+      timer < millis() - 600*1000;
+      LOG(printf_P, PSTR("TIMER CHECK"));
+    }
   }
 }
 
@@ -47,13 +47,9 @@ void Weather::handle(){
 //                              ПОГОДА                                                
 //===============================================================================================================================//
 void Weather::getToday() {
-  // if(weatherKey0=="" || !displayForecast) return;
-  if(embui.sysData.wifi_sta) {
-    updateForecast++;
-    // return;
-    LOG(printf_P, PSTR("======== START GET WEATHER FROM WEATHERBIT.IO =========\n"));
-    
-  
+  if(weatherKey0=="" || !displayForecast) return;
+  if(!embui.sysData.wifi_sta) return;
+  LOG(printf_P, PSTR("======== START GET WEATHER FROM WEATHERBIT.IO ========= \n"));
   
   // if(ESPclient.connect(weatherHost0.c_str(), 80)){}
   // else {
@@ -61,9 +57,9 @@ void Weather::getToday() {
   //   updateForecast++;
   //   return;
   // }
-//   //String reqline="http://"+weatherHost0+"/v2.0/current/daily?city="+cityID0+"&lang="+weatherLang+"&key="+weatherKey0;
+  //   //String reqline="http://"+weatherHost0+"/v2.0/current/daily?city="+cityID0+"&lang="+weatherLang+"&key="+weatherKey0;
   String reqline="http://"+weatherHost0+"/v2.0/current/daily?city="+String("&lat=") + String(lat) + String("&lon=") + String(lon)+"&lang="+weatherLang+"&key="+weatherKey0;
-  LOG(printf_P, PSTR("%s \n"), reqline);
+  LOG(printf_P, PSTR("%s \n"), reqline.c_str());
   if(http.begin(ESPclient, reqline)){
     int httpCode = http.GET();
     if(httpCode > 0) {
@@ -92,12 +88,14 @@ void Weather::getToday() {
   }
   const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(37) + 1128; //https://arduinojson.org/v6/assistant/
   DynamicJsonDocument doc(capacity);
+  // LOG(printf_P, PSTR("JSON WEATHER %s" \n), line.c_str());
   deserializeJson(doc, line);
   if(!doc.capacity()){
     LOG(printf_P, PSTR("Parse weather forecast - FAILED!!!"));
     updateForecast++;
     return;
   }
+  LOG(printf_P, PSTR("JSON WEATHER %s \n"), line);
   JsonObject data = doc["data"][0];
   location_rh = data["rh"]; 
   location_pres = data["pres"]; 
@@ -127,7 +125,7 @@ void Weather::getToday() {
   location_code = data_weather["code"];
   location_temp = data["temp"]; 
   location_app_temp = data["app_temp"];
-  }
+  setWeatherChek();
 }
 
 
@@ -152,17 +150,14 @@ String Weather::showToday(){
 // ============================================================================//
 void Weather::getTomorrow() {
   if(weatherKey0=="" || !displayForecast) return;
-  if(WiFi.status() != WL_CONNECTED) {
-    updateForecasttomorrow++;
-    return;
-  }
-  LOG(printf_P, PSTR("======== START GET FORECAST FROM WEATHERBIT.IO ========"));
+  if(!embui.sysData.wifi_sta) return;
+  LOG(printf_P, PSTR("======== START GET FORECAST FROM WEATHERBIT.IO ======== \n"));
    
   HTTPClient http;
   String line="";
   //String reqline="http://"+weatherHost0+"/v2.0/forecast/daily?city="+cityID0+"&lang="+weatherLang+"&days=2&key="+weatherKey0;
   String reqline="http://"+weatherHost0+"/v2.0/forecast/daily?city="+String("&lat=") + String(lat) + String("&lon=") + String(lon)+"&lang="+weatherLang+"&days=2&key="+weatherKey0;
-  LOG(printf_P, PSTR("%s \n"), reqline);   
+  LOG(printf_P, PSTR("%s \n"), reqline.c_str());   
   if(http.begin(ESPclient, reqline)){
    int httpCode = http.GET();
    if(httpCode > 0) {
@@ -188,8 +183,9 @@ void Weather::getTomorrow() {
     updateForecasttomorrow++;
     return;
   }
-  const size_t capacity = JSON_ARRAY_SIZE(2) + 2*JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(7) + 2*JSON_OBJECT_SIZE(37) + 2321;
+  const size_t capacity = JSON_ARRAY_SIZE(2) + 2*JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(7) + 2*JSON_OBJECT_SIZE(37) + 3300;
   DynamicJsonDocument doc(capacity);
+  LOG(printf_P, PSTR("JSON FORECAST %s \n"), line.c_str());
   deserializeJson(doc, line);
   if(!doc.capacity()){
 
@@ -197,11 +193,11 @@ void Weather::getTomorrow() {
     updateForecasttomorrow++;
     return;
   }
-  JsonObject data_0 = doc["data"][0];
-  JsonObject data_0_weather = data_0["weather"];
-  const char* data_0_weather_description = data_0_weather["description"]; 
-  float data_0_max_temp = data_0["max_temp"]; 
-  float data_0_min_temp = data_0["min_temp"]; 
+  // JsonObject data_0 = doc["data"][0];
+  // JsonObject data_0_weather = data_0["weather"];
+  // const char* data_0_weather_description = data_0_weather["description"]; 
+  // float data_0_max_temp = data_0["max_temp"]; 
+  // float data_0_min_temp = data_0["min_temp"]; 
   JsonObject data_1 = doc["data"][1];
   data_1_rh = data_1["rh"]; 
   data_1_clouds = data_1["clouds"]; 
@@ -221,6 +217,7 @@ void Weather::getTomorrow() {
   LOG(printf_P, PSTR("Getting weather forecast for tomorrow - is OK."));
   updateForecasttomorrow = 0;
   updateForecastNot = false;
+  setWeatherChek();
 }
 
 
@@ -235,6 +232,7 @@ String Weather::showTomorrow(){
     weatherStringZ += "м/с " + String(data_1_weather_description);
     weatherStringZ += ".  ";
   }
+  LOG(printf_P, PSTR("CHECK WEATHER %s \n"), weatherStringZ.c_str());
   return weatherStringZ;
 }
 
@@ -320,6 +318,7 @@ void Weather::getNarodmon() {
   // }
   // if (!tempNM && !updateForecast) tempNM = location_temp;
   //Serial.println("tempNM = " + String(tempNM, 1) + "'C");
+  setWeatherChek();
 }
 
 String Weather::showNarodmon(){

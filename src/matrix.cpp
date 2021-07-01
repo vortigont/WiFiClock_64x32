@@ -23,12 +23,12 @@ void MTX::init()
 void MTX::handle() {
   if(NIGHTMODE_TIME <= getHour() || MORNING_TIME > getHour()) nightMode = true; 
   else nightMode = false;
-  static unsigned long weather_home_switch;
+  static uint32_t weather_home_switch;
   static uint32_t weatherTimer;
   if (!mtxStarted) start();
   if (!mtxStarted) return;
   if (isStringPrinting) doPrintStringToMtx();
-  static unsigned long wait_handlers;
+  static uint32_t wait_handlers;
   if (wait_handlers + 500U > millis())
   return;
   wait_handlers = millis();
@@ -46,12 +46,10 @@ void MTX::handle() {
         {
           if (!switchHome)
           {
-            sendStringToMtx(String("Сегодня " + String(getMDay()) +  getMonthTxt() + "  " + String(getYear()) + " года " + getWDayTxt()).c_str());  // show text
-            sendStringToMtx(weather.showToday().c_str());
-          }
-          else 
-          {
-            sendStringToMtx(weather.showTomorrow().c_str());
+            sendStringToMtx(String("Сегодня " + String(getMDay()) + "  " + getMonthTxt() + "  " + String(getYear()) + " года " + getWDayTxt()).c_str());  // show text
+            if (weather.isWeatherCheck() > 1) sendStringToMtx(weather.showToday().c_str());
+          } else {
+            if (weather.isWeatherCheck() > 1) sendStringToMtx(weather.showTomorrow().c_str());
             sendStringToMtx(weather.showNarodmon().c_str());
           }
 
@@ -72,6 +70,7 @@ void MTX::handle() {
       } 
     }
   }
+  // LOG(printf_P, PSTR("CORE CORE CORE === %d \n"), xPortGetCoreID());
   if (!isStringPrinting) swapBuffers(true);
 }
 
@@ -82,8 +81,8 @@ void MTX::start() {
     return;
   wait_handlers = millis();
   static unsigned long showIp;
-  static int l;
-  static int i;
+  static uint8_t l;
+  static uint8_t i;
   l++;
   swapBuffers(true);
   // setFont();
@@ -128,7 +127,9 @@ void MTX::start() {
       setCursor(13, 5);
       setTextColor(embui.sysData.wifi_sta ? myGREEN : myRED);
       println(embui.sysData.wifi_sta ? "WiFi OK" : "WiFi AP");
-      setCursor(1, 18);
+      uint8_t x;
+      x = (62 - (WiFi.localIP().toString().length() - 3) * 5) / 2;   // Расчитываем длину айпи и делаем вывод примерно по центру оси Х (+- пару пикселей, т.к. у шрифта цифры разной ширины)
+      setCursor((embui.sysData.wifi_sta ? x : 12), 18);
       setFont(&TomThumb);
       setTextColor(myBLUE);
       println(embui.sysData.wifi_sta ? WiFi.localIP().toString() : "192.168.4.1");
@@ -188,11 +189,11 @@ void MTX::start() {
 
       case 9:
         drawRGBBitmap(2, 4, image_10, 60, 24);
+        if (!weather.isWeatherCheck()) weather.setWeatherChek();
         break;
-
     }
     i++;
-    if (i==15) mtxStarted = true;
+    if ((i == 15 && !embui.sysData.wifi_sta) || (weather.isWeatherCheck() == 4 && embui.sysData.wifi_sta)) mtxStarted = true;
 
   // }
 }
@@ -306,8 +307,7 @@ void MTX::getHome(){
   drawRGBBitmap(0, 20, image_data_Image22, 12, 12);
   drawRGBBitmap(38, 20, image_data_Image26, 10, 12);
   drawRGBBitmap(52, 9, image_data_Image28, 12, 12);
-  }
-  else {
+  } else {
   drawRGBBitmap(0, 7, image_data_Image25, 12, 12);
   drawRGBBitmap(0, 20, image_data_Image23, 12, 12);
   drawRGBBitmap(38, 20, image_data_Image27, 10, 12);
@@ -320,53 +320,57 @@ void MTX::getHome(){
 void MTX::getClock(){
   // Будет крутить подготовку за 2 минуты до смены на ночной режим. 
   if (getHour() == NIGHTMODE_TIME - 1 && getMin() >= 58){
-      drawLine(55, 8, 63, 8, myBLACK);
-      drawLine(55, 7, 63, 7, myBLACK);
-      sendStringToMtx("Подготовка к ночному режиму");
+    drawLine(55, 8, 63, 8, myBLACK);
+    drawLine(55, 7, 63, 7, myBLACK);
+    sendStringToMtx("Подготовка к ночному режиму");
   }
 
-    fillRect(0, 0, 64, 22, myBLACK); // Очищаем экран (не затрагивая бегущую строку)
+  fillRect(0, 0, 64, 22, myBLACK); // Очищаем экран (не затрагивая бегущую строку)
 
   // Блок вывода дня недели (котороткий)
-    setFont();
-    setCursor(49,8);
-    // drawLine(55, 7, 9, 7, myBLACK);
-    if (getWDay() == 0 || getWDay() == 6) setTextColor(myRED);
-    else setTextColor(myBLUE);
-    setFont(&kongtext4pt7b);
-    print(getWDayShort());
+  setFont();
+  setCursor(49, 8);
+  // drawLine(55, 7, 9, 7, myBLACK);
+  if (getWDay() == 0 || getWDay() == 6) setTextColor(myRED);
+  else setTextColor(myBLUE);
+  setFont(&kongtext4pt7b);
+  print(getWDayShort());
 
-  //  Вывод дня месяца
-    setFont();
-    if (getMDay() < 10) setCursor(5,-1);
-    else setCursor(9,0);
-    setTextColor(myYELLOW);
-    setFont(&kongtext4pt7b);
-    print(getMDay());
+  //  Вывод дня месяца и месяца (текст)
+  setFont();
+  static uint8_t x;
+  x = (62 - (getMDay() < 10 ? 7 : 14) - (getMonthTxt().length() / 2) * 7) / 2;  // Центрируем вывод дня и месяца
+  setCursor(x, 0);
+  setTextColor(myYELLOW);
+  setFont(&kongtext4pt7b);
+  print(getMDay());
 
   //  Вывод месяца (текст)
-    setFont();
-    setCursor(22,0);
-    setFont(&Heebo7pt8b);
-    setTextColor(myGREEN);
-    print(getMonthTxt());
+  setFont();
+  setCursor(getMDay() < 10 ? (x + 10) : (x + 17), 0);
+  setFont(&Heebo7pt8b);
+  setTextColor(myGREEN);
+  print(getMonthTxt());  
     
   //  Вывод секунд
-    setFont();
-    setCursor(49,15);
-    setTextColor(myGREEN);
-    setFont(&kongtext4pt7b);
-    if (getSec() < 10) print("0" + String(getSec()));
-    else print(getSec());
+  setFont();
+  setCursor(49,15);
+  setTextColor(myGREEN);
+  setFont(&kongtext4pt7b);
+  if (getSec() < 10) print("0" + String(getSec()));
+  else print(getSec());
 
   // Вывод часов
-    setFont();
-    setCursor(1, 15);
-    setTextColor(myGREEN);
-    fillRect(0, 8, 20, 15, myBLACK);
-    setFont(&FreeSansBold9pt7b);
-    setTextSize(1);
-    print(getTime());
+  setFont();
+  setCursor(1, 15);
+  if (getTime() == "-- --" || getTime() == "--:--" ) setCursor(10, 15);
+  setTextColor(myGREEN);
+  fillRect(0, 8, 20, 15, myBLACK);
+  setFont(&FreeSansBold9pt7b);
+  setTextSize(1);
+  print(getTime());
+
+  if (!embui.sysData.wifi_sta) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
 
 }
 
@@ -512,10 +516,12 @@ bool MTX::fillStringManual(const char* text,  bool stopText, bool isInverse, int
   }
 
     setFont();
-    fillRect(0, 22, 64, 12, myBLACK);
+    if (!embui.sysData.wifi_sta) fillRect(9, 22, 64, 12, myBLACK);
+    else fillRect(0, 22, 64, 12, myBLACK);
     setCursor(offset, 24);
     // setFont(&Heebo7pt8b);
     print(text);
+    if (!embui.sysData.wifi_sta) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
     swapBuffers(true);
   if(!stopText) {
     offset--;   
@@ -561,10 +567,12 @@ void MTX::getNightMode(){
   fillScreen(0);
   setFont();
   setCursor(8, 16);
+  if (getTime() == "-- --" || getTime() == "--:--" ) setCursor(19, 15);
   setTextSize(1);
   setFont(&FreeSansBold9pt7b);
   setTextColor(Color333(0,0,2));
   println(getTime());
+  if (!embui.sysData.wifi_sta) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
 
   if (MORNING_TIME == getHour()) showMorning = true;
 }

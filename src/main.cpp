@@ -18,6 +18,19 @@
 #ifdef SENSORS
 #include "sensors.h"
 #endif
+// TaskHandle_t TaskEmb;
+
+
+// void TaskEmbCode( void * parameter) {
+//   for(;;){
+//     // weather.handle();
+//   static unsigned long wait_handlers;
+//   if (wait_handlers + 60000 > millis())
+//     return;
+//   wait_handlers = millis();
+//   LOG(printf_P, PSTR("CORE CORE CORE === %d \n"), xPortGetCoreID());
+//   }
+// }
 
 // MAIN Setup
 void setup() {
@@ -33,9 +46,17 @@ void setup() {
   #endif
   matrix.init();
   sens.begin();
+  // xTaskCreatePinnedToCore(
+  //                   TaskEmbCode,   /* Функция задачи */
+  //                   "TaskEmb",     /* Название задачи */
+  //                   10000,       /* Размер стека задачи */
+  //                   NULL,        /* Параметр задачи */
+  //                   1,           /* Приоритет задачи */
+  //                   &TaskEmb,      /* Идентификатор задачи,
+  //                                   чтобы ее можно было отслеживать */
+  //                   0);          /* Ядро для выполнения задачи (0) */
 
 }
-
 
 // MAIN loop
 void loop() {

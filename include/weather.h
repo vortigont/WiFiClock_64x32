@@ -13,7 +13,7 @@ class Weather {
     String getWeathTemp(){String now;
     now =  (location_temp > 0 ? "+" : ((location_temp < 0 ) ? "-" : "")) + String(location_temp) + + "\260" + "c"; return now;}
     String getWeathTempTmrw(){String now;
-    now = (tempfor1 > 0 ? "+" : ((tempfor1 < 0 ) ? "-" : "")) + String(tempfor1) + "\260" + "c"; return now;}
+    now = (tempfor1 > 0 ? "+" : ((tempfor2 < 0 ) ? "-" : "")) + String(tempfor2) + "\260" + "c"; return now;}
     int image() {return location_code;}
     String showNarodmon();
     String showHome();
@@ -23,6 +23,9 @@ class Weather {
     String getNarodmonTemp() { 
     String now;
     now =  (tempNM > 0 ? "+" : ((tempNM < 0 ) ? "-" : "")) + String(tempNM, 1) + + "\260" + "c"; return now;}
+    int isWeatherCheck() { return weatherCheck;}
+    void setWeatherChek() { weatherCheck++;
+    LOG(printf_P, PSTR("weatherCheck ++ %d \n"), weatherCheck);}
 private:
     void getToday();
     void getTomorrow();
@@ -38,6 +41,7 @@ private:
     int nn;
     float hd;
     float td;
+    uint8_t weatherCheck;
     String rh;
     String weatherDescription = "";
     String weatherLocation = "";
@@ -53,8 +57,8 @@ private:
     String jsonConfig = "{}";
     HTTPClient http;
     WiFiClient ESPclient;
-    String lat = "48.263";             //Географические координаты
-    String lon = "25.180";             //
+    String lat = WEATHERBIT_LAT;             //Географические координаты
+    String lon = WEATHERBIT_LON;             //
     String weatherLang = "ru";
     String weatherHost0 = "api.weatherbit.io";
     String weatherKey0 = WEATHERBIT_API_KEY;        //ключ weatherbit

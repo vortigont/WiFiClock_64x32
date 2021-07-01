@@ -25,7 +25,7 @@ public:
     void init();
     void handle();
     bool isNightMode() {return nightMode;}
-
+    bool isStringPrint() {return isStringPrinting;}
 private:
 
     uint8_t frameDelay = 10;
@@ -66,18 +66,18 @@ private:
     String getMonthTxt(){ 
         String result;
         switch (getMonth()) {
-            case 1: result = " января"; break;
-            case 2: result = " февраля"; break;
-            case 3: result = " марта"; break;
-            case 4: result = " апреля"; break;
-            case 5: result = " мая"; break;
-            case 6: result = " июня"; break;
-            case 7: result = " июля"; break;
-            case 8: result = " августа"; break;
-            case 9: result = " сентября"; break;
-            case 10: result = " октября"; break;
-            case 11: result = " ноября"; break;
-            case 12: result = " декабря"; break;
+            case 1: result = "января"; break;
+            case 2: result = "февраля"; break;
+            case 3: result = "марта"; break;
+            case 4: result = "апреля"; break;
+            case 5: result = "мая"; break;
+            case 6: result = "июня"; break;
+            case 7: result = "июля"; break;
+            case 8: result = "августа"; break;
+            case 9: result = "сентября"; break;
+            case 10: result = "октября"; break;
+            case 11: result = "ноября"; break;
+            case 12: result = "декабря"; break;
     }
     return result;
     }

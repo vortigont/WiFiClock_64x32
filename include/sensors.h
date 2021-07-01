@@ -10,9 +10,9 @@ class Sensors : public Adafruit_BME280 {
 public:
     void start();
     String getTemp(){String temp;
-    if (readTemperature() > 0) temp = "+" + (String)int(readTemperature()) + "\260C";
-    if (readTemperature() < 0) temp = "-" + (String)int(readTemperature()) + "\260C";
-    else temp = " " + (String)int(readTemperature()) + "c";
+    if (readTemperature() > 0) temp = "+" + (String)int(readTemperature()) + "\260" + "c";
+    if (readTemperature() < 0) temp = "-" + (String)int(readTemperature()) + "\260" + "c";
+    else temp = " " + (String)int(readTemperature()) + "\260" + "c";
     return temp;
     }
     String getHum(){String hum = (String)int(readHumidity()) + "%"; return hum;
