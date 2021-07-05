@@ -95,7 +95,7 @@ void Weather::getToday() {
     updateForecast++;
     return;
   }
-  LOG(printf_P, PSTR("JSON WEATHER %s \n"), line);
+  LOG(printf_P, PSTR("JSON WEATHER %s \n"), line.c_str());
   JsonObject data = doc["data"][0];
   location_rh = data["rh"]; 
   location_pres = data["pres"]; 
@@ -203,8 +203,10 @@ void Weather::getTomorrow() {
   data_1_clouds = data_1["clouds"]; 
   data_1_wind_spd = data_1["wind_spd"];
   JsonObject data_1_weather = data_1["weather"];
-  data_1_weather_description = data_1_weather["description"];
-  data_1_wind_cdir_full = data_1["wind_cdir_full"];
+  const char* data_1_weather_description = data_1_weather["description"];
+  tomorrow_weather_description = data_1_weather_description;
+  const char* data_1_wind_cdir_full = data_1["wind_cdir_full"];
+  tomorrow_wind_cdir_full = data_1_weather_description;
   float data_1_max_temp = data_1["max_temp"];
   float data_1_min_temp = data_1["min_temp"];
   float data_1_weather_code = data_1_weather["code"];
@@ -218,6 +220,7 @@ void Weather::getTomorrow() {
   updateForecasttomorrow = 0;
   updateForecastNot = false;
   setWeatherChek();
+  LOG(printf_P, PSTR("CHECK WEATHER STRING %s \n"), showTomorrow().c_str());
 }
 
 
@@ -228,8 +231,8 @@ String Weather::showTomorrow(){
   if(displayForecastTomorrow) {
     weatherStringZ += "Прогноз на завтра: температура от " + getMinTmrw() + " до " + getMaxTmrw();
     weatherStringZ += " влажность " + String(data_1_rh) + "%";
-    weatherStringZ += " ветер " + String(data_1_wind_cdir_full) + " " + String(data_1_wind_spd, 1);//+ tSpeed
-    weatherStringZ += "м/с " + String(data_1_weather_description);
+    weatherStringZ += " ветер " + tomorrow_wind_cdir_full + " " + String(data_1_wind_spd, 1);//+ tSpeed
+    weatherStringZ += "м/с " + tomorrow_weather_description;
     weatherStringZ += ".  ";
   }
   LOG(printf_P, PSTR("CHECK WEATHER %s \n"), weatherStringZ.c_str());

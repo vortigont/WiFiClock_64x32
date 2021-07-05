@@ -101,8 +101,8 @@ private:
     float data_1_max_temp;
     float data_1_min_temp;
     float data_1_wind_spd;
-    const char* data_1_weather_description;
-    const char* data_1_wind_cdir_full;
+    String tomorrow_weather_description;
+    String tomorrow_wind_cdir_full;
     float valid_date_1;
     float tempNM = 0.0;
     float pressNM = 0;
