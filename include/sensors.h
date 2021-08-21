@@ -5,23 +5,43 @@
 #include "main.h"
 #include "DHT.h"
 #include "Adafruit_BME280.h"
+#include "timerMinim.h"
 
 class Sensors : public Adafruit_BME280 {
 public:
-    void start();
-    String getTemp(){String temp;
-    if (readTemperature() > 0) temp = "+" + (String)int(readTemperature()) + "\260" + "c";
-    if (readTemperature() < 0) temp = "-" + (String)int(readTemperature()) + "\260" + "c";
-    else temp = " " + (String)int(readTemperature()) + "\260" + "c";
-    return temp;
+  void start(){
+    if (!begin()) {
+      LOG(printf_P, PSTR("BME280 not initialized \n"));
+      return;
     }
-    String getHum(){String hum = (String)int(readHumidity()) + "%"; return hum;
+    update();
     }
-    String getPress(){String press = String(readPressure() / 1.3332239).substring(0, 3);return press;}
-    String getAltitude(){String alt = (String)readAltitude(SEALEVELPRESSURE_HPA) + "m"; return alt;};
+    void update(){
+      temp = int(readTemperature());
+      hum = int(readHumidity());
+      press = readPressure();
+      alt = readAltitude(SEALEVELPRESSURE_HPA);
+      LOG(printf_P, PSTR("Sensors updated Temp %d Hum %d Press %f Alt %f \n"), temp, hum, press, alt);
+    }
+    String getTemp(){
+      String tempS;  
+      if (temp > 0) tempS = "+" + String(temp) + "\260" + "c";
+      if (temp < 0) tempS = "-" + String(temp) + "\260" + "c";
+      else tempS = " " + String(temp) + "\260" + "c";
+      return tempS;
+    }
+    String getHum(){return String(hum);}
+    String getPress(){return String(press / 1.3332239).substring(0, 3);}
+    String getAltitude(){return String(alt) + "m";};
 
 private:
   String sensorType = SENSOR_TYPE;
+
+  int16_t temp = 0;
+  int16_t hum = 0;
+  float press = 0.0;
+  float alt = 0.0;
+
 };
 
 extern Sensors sens;

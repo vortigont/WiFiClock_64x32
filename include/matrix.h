@@ -29,10 +29,10 @@ public:
 private:
 
     uint8_t frameDelay = 10;
+    uint8_t oldSec = 0;
     uint16_t  animInterv = ANIM_INTERVAL;
     bool isStringPrinting;
     String &prepareText(String &source);
-    uint16_t scroll_interval = SCROLL_INTERVAL;
     int8_t textOffset;
     DynamicJsonDocument *docArrMessages = nullptr;
     byte txtOffset = 0;
@@ -129,6 +129,7 @@ private:
     void setTextOffset(uint8_t val) { txtOffset=val;}                   /// Пока особо не задействуется
     uint16_t _letterColor;
     timerMinim tmStringStepTime;    // шаг смещения строки, в мс
+    timerMinim screenAnimInterv;    // интервал анимации экранов Home и Weather
     bool fillStringManual(const char* text,  bool stopText = false, bool isInverse = false, int32_t pos = 0, int8_t letSpace = 1, int8_t txtOffset = 0, int8_t letWidth = 5, int8_t letHeight = 8); // -2147483648
 
 };

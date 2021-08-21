@@ -16,7 +16,8 @@ void MTX::init()
     setTextWrap(false);
     LOG(printf_P, PSTR("Matrix was initialized \n"));
     fillScreen(0);
-    tmStringStepTime.setInterval(scroll_interval);
+    tmStringStepTime.setInterval(SCROLL_INTERVAL);
+    screenAnimInterv.setInterval(WH_ANIM_INTERVAL);
   }
 
 // Обработчик матрицы
@@ -25,13 +26,15 @@ void MTX::handle() {
   else nightMode = false;
   static uint32_t weather_home_switch;
   static uint32_t weatherTimer;
-  if (!mtxStarted) start();
-  if (!mtxStarted) return;
+  if (!mtxStarted) {
+    start();
+    return;
+  }
   if (isStringPrinting) doPrintStringToMtx();
-  static uint32_t wait_handlers;
-  if (wait_handlers + 500U > millis())
-  return;
-  wait_handlers = millis();
+  // static uint32_t wait_handlers;
+  // if (wait_handlers + 500U > millis())
+  // return;
+  // wait_handlers = millis();
   if (getHour() == NIGHTMODE_TIME && getMin() == 0 && getSec() < 5) getScreen();
   else if (getHour() == MORNING_TIME && getMin() == 0 && getSec() < 5) getScreen();
   else 
@@ -47,10 +50,10 @@ void MTX::handle() {
           if (!switchHome)
           {
             sendStringToMtx(String("Сегодня " + String(getMDay()) + "  " + getMonthTxt() + "  " + String(getYear()) + " года " + getWDayTxt()).c_str());  // show text
-            if (weather.isWeatherCheck() > 1) sendStringToMtx(weather.showToday().c_str());
+            if (weather.getWeatherSett().displayForecastToday) sendStringToMtx(weather.showToday().c_str());
           } else {
-            if (weather.isWeatherCheck() > 1) sendStringToMtx(weather.showTomorrow().c_str());
-            sendStringToMtx(weather.showNarodmon().c_str());
+            if (weather.getWeatherSett().displayForecastTomorrow) sendStringToMtx(weather.showTomorrow().c_str());
+            if (weather.getWeatherSett().displayNarodmon) sendStringToMtx(weather.showNarodmon().c_str());
           }
 
           showWthTxt = false;
@@ -59,18 +62,20 @@ void MTX::handle() {
       }
       if (weather_home_switch + 30*1000 < millis() && !isStringPrinting) 
       {
-        if(switchHome) getHome();
-        else getWeather();
+        if(switchHome)
+          getWeather();
+        else
+          getHome();
         swapBuffers(true);
         if (weatherTimer + 15*1000 > millis()) 
         return;
         weather_home_switch = millis();
         showWthTxt = true;
         switchHome=!switchHome;
+        sens.update();
       } 
     }
   }
-  // LOG(printf_P, PSTR("CORE CORE CORE === %d \n"), xPortGetCoreID());
   if (!isStringPrinting) swapBuffers(true);
 }
 
@@ -189,11 +194,17 @@ void MTX::start() {
 
       case 9:
         drawRGBBitmap(2, 4, image_10, 60, 24);
-        if (!weather.isWeatherCheck()) weather.setWeatherChek();
+        Task *t = new Task(TASK_SECOND, TASK_FOREVER, []{
+            weather.getToday();
+            weather.getTomorrow();
+            weather.getNarodmon();
+            TASK_RECYCLE;},
+          &ts, false);
+        t->enableDelayed();
         break;
     }
     i++;
-    if ((i == 15 && !embui.sysData.wifi_sta) || (weather.isWeatherCheck() == 4 && embui.sysData.wifi_sta)) mtxStarted = true;
+    if (i == 15) mtxStarted = true;
 
   // }
 }
@@ -203,9 +214,14 @@ String MTX::getTime(){
 
   const tm* t = localtime(embui.timeProcessor.now());  // Определяем для вывода времени 
   static char dispTime[5]; 
-  if (embui.timeProcessor.isDirtyTime()) sprintf (dispTime, (showPoints ? "--:--" : "-- --"));
-  else sprintf (dispTime, (showPoints ? "%02d:%02d" : "%02d %02d"), t->tm_hour, t->tm_min);
-  if (millis() % 1000 > 500) showPoints=!showPoints;
+  // if (embui.timeProcessor.isDirtyTime()) sprintf (dispTime, (showPoints ? "--:--" : "-- --"));
+  sprintf (dispTime, (showPoints ? "%02d:%02d" : "%02d %02d"), t->tm_hour, t->tm_min);
+  // else sprintf (dispTime, (showPoints ? "%02d:%02d" : "%02d %02d"), t->tm_hour, t->tm_min);
+  if (oldSec != t->tm_sec) {
+    showPoints=!showPoints;
+    oldSec = t->tm_sec;
+  }
+
   return String(dispTime);
 
 }
@@ -213,6 +229,18 @@ String MTX::getTime(){
 
 
 void MTX::getWeather(){
+
+  // Время
+  setFont();
+  setCursor(21, 9);
+  setTextSize(1);
+  setFont(&TomThumb);
+  setTextColor(myRED);
+  println(getTime());
+  setFont();
+
+  if (!screenAnimInterv.isReady())
+    return;
 
   // Выводим надпись "погода"
   fillScreen(0);
@@ -254,14 +282,6 @@ void MTX::getWeather(){
   setTextColor(myRED);
   print(weather.getWeathTempTmrw());
 
-  // Время
-  setFont();
-  setCursor(21, 9);
-  setTextSize(1);
-  setFont(&TomThumb);
-  setTextColor(myRED);
-  println(getTime());
-  setFont();
 
   // Берем изображение погоды
   getImage();
@@ -272,14 +292,16 @@ void MTX::getWeather(){
 /// Экран "дома"
 void MTX::getHome(){
 
-  fillScreen(0);
-  fillRect(0, 0, 64, 32, myBLACK);
   setFont();
   setCursor(42, 0);
   setTextSize(1);
   setFont(&TomThumb);
   setTextColor(myBLUE);
   println(getTime());
+
+if (!screenAnimInterv.isReady()) return;
+
+  fillScreen(0);
 
   setFont();
   setCursor(4, -1);
@@ -301,7 +323,6 @@ void MTX::getHome(){
   println(sens.getHum());   //влажность
   setFont();
 
-  switchAnim=!switchAnim;
   if (switchAnim) {
   drawRGBBitmap(0, 7, image_data_Image24, 12, 12);
   drawRGBBitmap(0, 20, image_data_Image22, 12, 12);
@@ -314,6 +335,8 @@ void MTX::getHome(){
   drawRGBBitmap(52, 9, image_data_Image29, 12, 12);
   }
 
+  switchAnim=!switchAnim;
+
 }
 
 /// Главный экран часов (дневной режим)
@@ -325,7 +348,8 @@ void MTX::getClock(){
     sendStringToMtx("Подготовка к ночному режиму");
   }
 
-  fillRect(0, 0, 64, 22, myBLACK); // Очищаем экран (не затрагивая бегущую строку)
+  if (isStringPrinting) fillRect(0, 0, 64, 22, myBLACK); // Очищаем экран (не затрагивая бегущую строку)
+  else fillRect(0, 0, 64, 32, myBLACK);
 
   // Блок вывода дня недели (котороткий)
   setFont();

@@ -1,3 +1,4 @@
+#pragma once
 #include "config.h"
 #include "main.h"
 // мини-класс таймера, версия 1.0

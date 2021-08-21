@@ -2,6 +2,7 @@
 // Main headers
 #include "main.h"
 #include "matrix.h"
+#include "rtc.h"
 // #include <SPIFFSEditor.h>
 /**
  * построение интерфейса осуществляется в файлах 'interface.*'
@@ -20,6 +21,7 @@
 #endif
 // TaskHandle_t TaskEmb;
 
+timerMinim rtcUpd;
 
 // void TaskEmbCode( void * parameter) {
 //   for(;;){
@@ -45,7 +47,10 @@ void setup() {
       ftp_setup(); // запуск ftp-сервера
   #endif
   matrix.init();
-  sens.begin();
+  sens.start();
+  rtc.init();
+  rtcUpd.setInterval(24*3600*1000);
+  weather.init();
   // xTaskCreatePinnedToCore(
   //                   TaskEmbCode,   /* Функция задачи */
   //                   "TaskEmb",     /* Название задачи */
@@ -63,14 +68,15 @@ void loop() {
   embui.handle();
   matrix.handle();
   weather.handle();
-// LOG(printf_P, PSTR("Matrix was initialized \n"));
-#ifdef USE_FTP
-    ftp_loop(); // цикл обработки событий фтп-сервера
-#endif
-//   static unsigned long wait_handlers;
-//   if (wait_handlers + 60000 > millis())
-//     return;
-//   wait_handlers = millis();
-// weather.getNarodmon();
+
+
+  if (rtcUpd.isReady())
+    rtc.updateRtcTime();
+  static unsigned long wait_handlers;
+  if (wait_handlers + 1000 > millis())
+    return;
+  wait_handlers = millis();
+  LOG(printf_P, PSTR("DIRTY %d \n"), embui.timeProcessor.isDirtyTime());
+
 
 }

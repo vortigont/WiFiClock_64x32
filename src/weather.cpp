@@ -7,39 +7,26 @@
 Weather weather;
 
 
+void Weather::init(){
+  flags.displayCityName = true;            // TODO
+  flags.displayForecast = true;
+  flags.displayForecastNow = true;
+  flags.displayForecastToday = true;
+  flags.displayForecastTomorrow = true;
+  flags.displayNarodmon = true;
+}
 
 void Weather::handle(){
   if (!embui.sysData.wifi_sta) return;
-  static uint32_t timer;
-  if (!weatherCheck) return;
-  if (weatherCheck < 4) {
-    if (timer + 1000 > millis())
-      return;
-    timer = millis();
-    switch (weatherCheck) {
-    case 1:
-      getToday();
-      // weatherCheck++;
-      break;
-    case 2:
-      getTomorrow();
-      // weatherCheck++;
-      break;
-    case 3:
-      getNarodmon();
-      // weatherCheck++;
-      break;
-    }
-  } else{
-    if (millis() - timer >= 600*1000 && !matrix.isNightMode()) {
-      timer += 600*1000;
-      if (timer < 600*1000) return; 
-      getToday();
-      getTomorrow();
-      getNarodmon();
-      timer < millis() - 600*1000;
-      LOG(printf_P, PSTR("TIMER CHECK"));
-    }
+    
+  if (millis() - timer >= UPDATE_WEATHER_TIME * TASK_MINUTE && !matrix.isNightMode()) {
+    timer +=  UPDATE_WEATHER_TIME * TASK_MINUTE;
+    if (timer <  UPDATE_WEATHER_TIME * TASK_MINUTE) return; 
+    getToday();
+    getTomorrow();
+    getNarodmon();
+    timer < millis() -  UPDATE_WEATHER_TIME * TASK_MINUTE;
+    LOG(printf_P, PSTR("TIMER CHECK"));
   }
 }
 
@@ -47,17 +34,11 @@ void Weather::handle(){
 //                              ПОГОДА                                                
 //===============================================================================================================================//
 void Weather::getToday() {
-  if(weatherKey0=="" || !displayForecast) return;
+  if(weatherKey0=="" || flags.displayForecastToday) return;
   if(!embui.sysData.wifi_sta) return;
   LOG(printf_P, PSTR("======== START GET WEATHER FROM WEATHERBIT.IO ========= \n"));
   
-  // if(ESPclient.connect(weatherHost0.c_str(), 80)){}
-  // else {
-
-  //   updateForecast++;
-  //   return;
-  // }
-  //   //String reqline="http://"+weatherHost0+"/v2.0/current/daily?city="+cityID0+"&lang="+weatherLang+"&key="+weatherKey0;
+  String line;
   String reqline="http://"+weatherHost0+"/v2.0/current/daily?city="+String("&lat=") + String(lat) + String("&lon=") + String(lon)+"&lang="+weatherLang+"&key="+weatherKey0;
   LOG(printf_P, PSTR("%s \n"), reqline.c_str());
   if(http.begin(ESPclient, reqline)){
@@ -71,19 +52,16 @@ void Weather::getToday() {
     else {
       LOG(printf_P, PSTR("[HTTP] GET... failed, error: %s\n"), http.errorToString(httpCode).c_str());
       http.end();
-      updateForecast++;
       return;
     }
     http.end();
   } 
   else {
     LOG(printf_P, PSTR("[HTTP] Unable to connect\n"));
-    updateForecast++;
     return;
   }
   if(line==""){
     LOG(printf_P, PSTR("[HTTP] The answer is empty\n"));
-    updateForecast++;
     return;
   }
   const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(37) + 1128; //https://arduinojson.org/v6/assistant/
@@ -92,71 +70,62 @@ void Weather::getToday() {
   deserializeJson(doc, line);
   if(!doc.capacity()){
     LOG(printf_P, PSTR("Parse weather forecast - FAILED!!!"));
-    updateForecast++;
     return;
   }
   LOG(printf_P, PSTR("JSON WEATHER %s \n"), line.c_str());
   JsonObject data = doc["data"][0];
-  location_rh = data["rh"]; 
-  location_pres = data["pres"]; 
-  if(pressSys == 1) location_pres /= 1.3332239;
-  const char* data_timezone = data["timezone"]; 
-  location_region = data_timezone;
-  const char* data_ob_time = data["ob_time"]; 
-  location_localtime = data_ob_time;
-  const char* data_country_code = data["country_code"];
-  location_country = data_country_code;
-  location_clouds = data["clouds"]; 
-  const char*   data_city_name = data["city_name"]; 
-  location_name = data_city_name;
-  location_wind_spd = data["wind_spd"]; // 1
-  const char* data_wind_cdir_full = data["wind_cdir_full"]; 
-  location_wind_cdir_full = data_wind_cdir_full;
-  location_vis = data["vis"]; // 5
-  const char*   data_sunset = data["sunset"];
-  location_sunset = data_sunset;
-  location_uv = data["uv"]; // 0
-  int           data_wind_dir = data["wind_dir"]; 
-  const char*   data_sunrise = data["sunrise"]; 
-  location_sunrise = data_sunrise;   
+  location_rh = data["rh"].as<int>(); 
+  location_pres = data["pres"].as<int>(); 
+  if(PRESS_SYSTEM) location_pres /= 1.3332239;
+  // const char* data_timezone = data["timezone"]; 
+  // location_region = data_timezone;
+  // const char* data_ob_time = data["ob_time"]; 
+  // location_localtime = data_ob_time;
+  // location_country = data["country_code"].as<String>();
+  location_clouds = data["clouds"].as<int>(); 
+  location_name = data["city_name"].as<int>(); 
+  location_wind_spd = data["wind_spd"].as<float>(); // 1
+  location_wind_cdir_full = data["wind_cdir_full"].as<String>(); 
+  // location_vis = data["vis"].as<int>(); // 5
+  // location_sunset = data["sunset"].as<String>();
+  // location_uv = data["uv"].as<int>(); // 0
+  // int           data_wind_dir = data["wind_dir"]; 
+  // location_sunrise = data["sunrise"].as<String>(); 
   JsonObject    data_weather = data["weather"];
-  const char*   data_weather_description = data_weather["description"]; 
-  location_weather_description = data_weather_description;
-  location_code = data_weather["code"];
-  location_temp = data["temp"]; 
-  location_app_temp = data["app_temp"];
-  setWeatherChek();
+  location_weather_description = data_weather["description"].as<String>(); 
+  location_code = data_weather["code"].as<int>();
+  location_temp = data["temp"].as<int>(); 
+  location_app_temp = data["app_temp"].as<float>();
 }
 
 
 String Weather::showToday(){
-  String weatherString;
-   if(displayForecastNow){
+  String today;
+   if(flags.displayForecastNow){
     if (location_temp > 0 ){
-    weatherString +=  "Cейчас в " + String(city) + ":" + " температура " + getWeathTemp();
+    today +=  "Cейчас в " + String(city) + ":" + " температура " + getWeathTemp();
     }else{
-    weatherString +=  "Cейчас в " + String(city) + ":" + " температура " + getWeathTemp();  
+    today +=  "Cейчас в " + String(city) + ":" + " температура " + getWeathTemp();  
     }
-    weatherString += " влажность " + String(location_rh) + "% "; 
-    weatherString += "давление " + String((location_pres), 0) + (pressSys == 1 ? tPress : tPress0) + "ммРс ";
-    weatherString += " ветер " + String(location_wind_cdir_full) + " " + String(location_wind_spd, 1) + "м/с";
-    weatherString += " облачность " + String(location_clouds) +  "% " + location_weather_description + ".  ";
-    return weatherString;
+    today += " влажность " + String(location_rh) + "% "; 
+    today += "давление " + String((location_pres), 0) + (PRESS_SYSTEM ? "ммРс " : "P ");
+    today += " ветер " + String(location_wind_cdir_full) + " " + String(location_wind_spd, 1) + "м/с";
+    today += " облачность " + String(location_clouds) +  "% " + location_weather_description + ".  ";
   }
+  return today;
 }
 
 // ============================================================================//
 //               ПРОГНОЗ!!!    // 
 // ============================================================================//
 void Weather::getTomorrow() {
-  if(weatherKey0=="" || !displayForecast) return;
+  if(weatherKey0=="" || flags.displayForecastTomorrow) return;
   if(!embui.sysData.wifi_sta) return;
   LOG(printf_P, PSTR("======== START GET FORECAST FROM WEATHERBIT.IO ======== \n"));
    
   HTTPClient http;
   String line="";
-  //String reqline="http://"+weatherHost0+"/v2.0/forecast/daily?city="+cityID0+"&lang="+weatherLang+"&days=2&key="+weatherKey0;
-  String reqline="http://"+weatherHost0+"/v2.0/forecast/daily?city="+String("&lat=") + String(lat) + String("&lon=") + String(lon)+"&lang="+weatherLang+"&days=2&key="+weatherKey0;
+  String reqline="http://"+weatherHost0+"/v2.0/forecast/daily?city="+ "&lat=" + lat + "&lon=" + lon+"&lang="+weatherLang+"&days=2&key="+weatherKey0;
   LOG(printf_P, PSTR("%s \n"), reqline.c_str());   
   if(http.begin(ESPclient, reqline)){
    int httpCode = http.GET();
@@ -169,18 +138,16 @@ void Weather::getTomorrow() {
    else {
      LOG(printf_P, PSTR("[HTTP] GET... failed, error: %s\n"), http.errorToString(httpCode).c_str());
      http.end();
-     updateForecasttomorrow++;
      return;
    }
    http.end();
-  } else {
+  } 
+  else {
     LOG(printf_P, PSTR("    [HTTP] Unable to connect\n"));
-    updateForecasttomorrow++;
     return;
   }
   if(line==""){
     LOG(printf_P, PSTR("[HTTP] The answer is empty\n"));
-    updateForecasttomorrow++;
     return;
   }
   const size_t capacity = JSON_ARRAY_SIZE(2) + 2*JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(7) + 2*JSON_OBJECT_SIZE(37) + 3300;
@@ -188,9 +155,7 @@ void Weather::getTomorrow() {
   LOG(printf_P, PSTR("JSON FORECAST %s \n"), line.c_str());
   deserializeJson(doc, line);
   if(!doc.capacity()){
-
     LOG(printf_P, PSTR("Parse weather forecast - FAILED!!!"));
-    updateForecasttomorrow++;
     return;
   }
   // JsonObject data_0 = doc["data"][0];
@@ -199,27 +164,18 @@ void Weather::getTomorrow() {
   // float data_0_max_temp = data_0["max_temp"]; 
   // float data_0_min_temp = data_0["min_temp"]; 
   JsonObject data_1 = doc["data"][1];
-  data_1_rh = data_1["rh"]; 
-  data_1_clouds = data_1["clouds"]; 
-  data_1_wind_spd = data_1["wind_spd"];
+  data_1_rh = data_1["rh"].as<int>(); 
+  data_1_clouds = data_1["clouds"].as<int>(); 
+  data_1_wind_spd = data_1["wind_spd"].as<int>();
   JsonObject data_1_weather = data_1["weather"];
-  const char* data_1_weather_description = data_1_weather["description"];
-  tomorrow_weather_description = data_1_weather_description;
-  const char* data_1_wind_cdir_full = data_1["wind_cdir_full"];
-  tomorrow_wind_cdir_full = data_1_weather_description;
-  float data_1_max_temp = data_1["max_temp"];
-  float data_1_min_temp = data_1["min_temp"];
-  float data_1_weather_code = data_1_weather["code"];
-    coded1 = 0;
-  tempfor1 = 0;
-  tempfor2 = 0;
-  coded1 += int(data_1_weather_code);
-    tempfor1 += int(data_1_min_temp);
-    tempfor2 += int(data_1_max_temp);
+  tomorrow_weather_description = data_1_weather["description"].as<String>();
+  // tomorrow_weather_description = data_1_weather_description;
+  tomorrow_wind_cdir_full = data_1["wind_cdir_full"].as<String>();
+  // tomorrow_wind_cdir_full = data_1_weather_description;
+  tempMax = data_1["max_temp"].as<int>();
+  tempMin = data_1["min_temp"].as<int>();
+  // coded1 = data_1_weather["code"].as<int>();
   LOG(printf_P, PSTR("Getting weather forecast for tomorrow - is OK."));
-  updateForecasttomorrow = 0;
-  updateForecastNot = false;
-  setWeatherChek();
   LOG(printf_P, PSTR("CHECK WEATHER STRING %s \n"), showTomorrow().c_str());
 }
 
@@ -227,16 +183,15 @@ void Weather::getTomorrow() {
 
 
 String Weather::showTomorrow(){
-  String weatherStringZ;
-  if(displayForecastTomorrow) {
-    weatherStringZ += "Прогноз на завтра: температура от " + getMinTmrw() + " до " + getMaxTmrw();
-    weatherStringZ += " влажность " + String(data_1_rh) + "%";
-    weatherStringZ += " ветер " + tomorrow_wind_cdir_full + " " + String(data_1_wind_spd, 1);//+ tSpeed
-    weatherStringZ += "м/с " + tomorrow_weather_description;
-    weatherStringZ += ".  ";
+  String tomorrow;
+  if(flags.displayForecastTomorrow) {
+    tomorrow += "Прогноз на завтра: температура от " + getMinTmrw() + " до " + getMaxTmrw();
+    tomorrow += " влажность " + String(data_1_rh) + "%";
+    tomorrow += " ветер " + tomorrow_wind_cdir_full + " " + String(data_1_wind_spd, 1);//+ tSpeed
+    tomorrow += "м/с " + tomorrow_weather_description;
+    tomorrow += ".  ";
   }
-  LOG(printf_P, PSTR("CHECK WEATHER %s \n"), weatherStringZ.c_str());
-  return weatherStringZ;
+  return tomorrow;
 }
 
 
@@ -253,14 +208,24 @@ void Weather::getNarodmon() {
   LOG(printf_P, PSTR("connection failed \n"));
     return;
   }
-  if (!sensors_ID0) return;
-  String line2 = "";
+
+
   String reqline = "http://narodmon.ru/api/sensorsValues?sensors=";
-  if (sensors_ID0) reqline += String(sensors_ID0);
-  if (sensors_ID1) reqline += "," + String(sensors_ID1);
-  if (sensors_ID2) reqline += "," + String(sensors_ID2);
+  String line;
+  uint8_t sensCount = 0;
+  for (uint8_t i = 0; i < sizeof(sensors_ID)/sizeof(sensors_ID[0]); i++) {
+    if (sensors_ID[i]) {
+    if (i) reqline += ",";
+      reqline += String(sensors_ID[i]);
+      sensCount++;
+      LOG(printf_P, PSTR("Sens ID = %d \n"), i);
+    }
+    else
+      LOG(printf_P, PSTR("NONE ID \n"));
+  }
+
   reqline += "&uuid=" + narodmonUid + "&api_key=" + narodmonApiKey;
-  // LOG(printf_P, PSTR("NARODMON %s \n"), reqline);
+  LOG(printf_P, PSTR("NARODMON %s \n"), reqline.c_str());
 
   if (http.begin(ESPclient, reqline)) { // HTTP
     int httpCode = http.GET();
@@ -271,64 +236,38 @@ void Weather::getNarodmon() {
       }
     } else {
      LOG(printf_P, PSTR("[HTTP] GET... failed NARODMON, error: %s\n"), http.errorToString(httpCode).c_str());
+     return;
     }
     http.end();
   } else {
     LOG(printf_P, PSTR("[HTTP] Unable to connect NARODMON\n"));
+    return;
   }
-      LOG(printf_P, PSTR("NARODMON answer="));
-      LOG(println, F(line.c_str()));
-    const size_t capacity = JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(1) + 2 * JSON_OBJECT_SIZE(6) + 340; //https://arduinojson.org/v6/assistant/
+  LOG(printf_P, PSTR("NARODMON answer=%s\n"), line.c_str());
+  const size_t capacity = JSON_ARRAY_SIZE(2) + JSON_OBJECT_SIZE(1) + 2 * JSON_OBJECT_SIZE(6) + 340; //https://arduinojson.org/v6/assistant/
   DynamicJsonDocument doc(capacity);
   deserializeJson(doc, line);
   if (!doc.capacity()) {
-    LOG(printf_P, PSTR("Parse weather forecast - FAILED!!!"));
+    LOG(printf_P, PSTR("Parse weather forecast - FAILED!!!\n"));
     return;
   }
-  JsonObject sensors_0 = doc["sensors"][0];
-  float sensors_0_value = sensors_0["value"]; // 14.2
-  long sensors_0_time = sensors_0["time"]; // 1571853360
-  JsonObject sensors_1 = doc["sensors"][1];
-  float sensors_1_value = sensors_1["value"]; // 14
-  long sensors_1_time = sensors_1["time"]; // 1571853000
-  JsonObject sensors_2 = doc["sensors"][2];
-  float sensors_2_value = sensors_2["value"];
-  long sensors_2_time = sensors_2["time"];
-
-  long timestamp = epochNM + (millis() / 1000);
-  // LOG(println, F("sensors_0 = " + sensors_0_value.c_str() + "sensors_1 = " + sensors_1_value.c_str() + "    sensors_2 = " + sensors_2_value.c_str());
-  // LOG(println, F("time_0 = " + (timestamp - sensors_0_time).c_str() + "      time_1 = " + (timestamp - sensors_1_time).c_str() + "      time_2 = " + (timestamp - sensors_2_time).c_str());
-
-  //   pressNM = 0;
-  // humNM = 0;
-  // if (sensors_ID0) {
-    // if ((timestamp - sensors_0_time) > 3600) {
-      // sensors_0_value = 99;
-    // } else 
-    tempNM = sensors_0_value;
-  // }
-  // if (sensors_ID1) {
-
-    // if ((timestamp - sensors_1_time) > 3600) {
-      // sensors_1_value = 99;
-    // } else if 
-    if (tempNM > sensors_1_value) tempNM = sensors_1_value;
-  // }
-  // if (sensors_ID2) {
-  //   if ((timestamp - sensors_2_time) > 3600) {
-  //     sensors_2_value = 99;
-  //   } else if (tempNM > sensors_2_value) humNM = sensors_2_value;
-  // }
-  // if (!tempNM && !updateForecast) tempNM = location_temp;
-  //Serial.println("tempNM = " + String(tempNM, 1) + "'C");
-  setWeatherChek();
+  JsonObject sensors[sensCount];
+  float sens_val[sensCount];
+  for (uint8_t i = 0; i < sensCount; i++) {
+    sensors[i] = doc["sensors"][i];
+    sens_val[i] = sensors[i]["value"].as<float>(); // 14.2
+  }
+  tempNM = sens_val[0];
+  for (uint8_t i = 1; i < sensCount; i++) {
+    tempNM = tempNM < sens_val[i] ? tempNM : sens_val[i];
+  }
 }
 
 String Weather::showNarodmon(){
-  String now;
-  now += "Народный мониторинг - на улице температура: " + getNarodmonTemp();
-  now += "     В помещении: " + sens.getTemp() + ",влажность: " + sens.getHum() + ", давление: " + sens.getPress() +  "ммРc.";
-  return now;
+  String narodmon;
+  narodmon += "Народный мониторинг - на улице температура: " + getNarodmonTemp();
+  narodmon += "     В помещении: " + sens.getTemp() + ",влажность: " + sens.getHum() + ", давление: " + sens.getPress() +  "ммРc.";
+  return narodmon;
 }
 
 
