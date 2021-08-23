@@ -194,17 +194,11 @@ void MTX::start() {
 
       case 9:
         drawRGBBitmap(2, 4, image_10, 60, 24);
-        Task *t = new Task(TASK_SECOND, TASK_FOREVER, []{
-            weather.getToday();
-            weather.getTomorrow();
-            weather.getNarodmon();
-            TASK_RECYCLE;},
-          &ts, false);
-        t->enableDelayed();
+        weather.setUpdate();
         break;
     }
     i++;
-    if (i == 15) mtxStarted = true;
+    if ((i > 15 && !weather.getUpdate()) || (i > 15 && !weather.getWeatherSett().displayForecast)) mtxStarted = true;
 
   // }
 }
@@ -312,7 +306,7 @@ if (!screenAnimInterv.isReady()) return;
   setFont(&TomThumb);
   setCursor(13, 15);
   setTextColor(myRED);
-  println(sens.getPress()+ " mmMs");
+  println(sens.getPress());
 
   setCursor(10, 28);
   setTextColor(myRED);

@@ -10,7 +10,7 @@
 
 typedef union {
     struct {
-    bool displayCityName:1;            // TODO
+    bool displayCityName:1;
     bool displayForecast:1;
     bool displayForecastNow:1;
     bool displayForecastToday:1;
@@ -19,6 +19,12 @@ typedef union {
     };
     uint8_t weatherFlags;
 }WEATHERFLAGS;
+
+enum {
+    TODAY = 1,
+    TOMORROW,
+    NAROD
+};
     
 class Weather {
     public:
@@ -33,23 +39,51 @@ class Weather {
     String showHome();
     String showToday();
     String showTomorrow();
-    void getNarodmon();
-    void getTomorrow();
-    void getToday();
+    void update();
+    void setUpdate();
+    int8_t getUpdate();
+    bool getNarodmon();
+    bool getTomorrow();
+    bool getToday();
+    bool getUpdError(uint8_t err) {
+        if (!updError)
+            return false;
+
+        switch (err)
+        {
+        case TODAY:
+            if (bitRead(updError, TODAY))
+                return true;
+            break;
+        case TOMORROW:
+            if (bitRead(updError, TOMORROW))
+                return true;
+            break;
+        case NAROD:
+            if (bitRead(updError, NAROD))
+                return true;
+            break;
+        
+        default:
+            break;
+        }
+        return false;
+    }
     String getNarodmonTemp() { 
         String now;
         now =  (tempNM > 0 ? "+" : ((tempNM < 0 ) ? "-" : "")) + String(tempNM, 1) + + "\260" + "c"; return now;}
     const WEATHERFLAGS &getWeatherSett() {return flags;}
 private:
     WEATHERFLAGS flags;
+    byte updError = 0;
     String getMinTmrw(){String now;
     now = (tempMin > 0 ? "+" : ((tempMin < 0 ) ? "-" : "")) + String(tempMin) + "\260" + "c"; return now;}
     String getMaxTmrw(){String now;
     now = (tempMax > 0 ? "+" : ((tempMax < 0 ) ? "-" : "")) + String(tempMax)+ "\260" + "c"; return now;}
     String city = CITY;
-    int data_1_rh;
-    int data_1_clouds;
-
+    int data_1_rh = 0;
+    int data_1_clouds = 0;
+    uint8_t upd = 0;
     HTTPClient http;
     WiFiClient ESPclient;
     String lat = WEATHERBIT_LAT;             //Географические координаты
@@ -58,31 +92,31 @@ private:
     String weatherHost0 = "api.weatherbit.io";
     String weatherKey0 = WEATHERBIT_API_KEY;        //ключ weatherbit
 
-    long timer;
+    long timer = 0;
     byte sch = 0;
     String location_name = "";
     // String location_region = "";
     // String location_country = "";
     // String location_localtime = "";
-    int  location_temp;
-    float  location_app_temp;
-    int    location_rh;
-    float  location_pres;
-    int    location_code;
+    int  location_temp = 0;
+    float  location_app_temp = 0.0;
+    int    location_rh = 0;
+    float  location_pres = 0.0;
+    int    location_code = 0;
     // int    coded1;
     float  location_wind_spd;
     String location_wind_cdir_full = "";
     // String location_sunrise = "";
     // String location_sunset = "";
-    int    location_clouds;
+    int    location_clouds = 0;
     // int    location_vis;
-    int    location_uv;
-    int  tempMin;
-    int  tempMax;
-    float data_1_wind_spd;
+    int    location_uv = 0;
+    int  tempMin = 0;
+    int  tempMax = 0;
+    float data_1_wind_spd = 0.0;
 
-    String tomorrow_weather_description;
-    String tomorrow_wind_cdir_full;
+    String tomorrow_weather_description = "";
+    String tomorrow_wind_cdir_full = "";
     float tempNM = 0.0;
     // float pressNM = 0;
     // float humNM = 0;

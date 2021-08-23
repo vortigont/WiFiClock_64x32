@@ -30,8 +30,8 @@ public:
       else tempS = " " + String(temp) + "\260" + "c";
       return tempS;
     }
-    String getHum(){return String(hum);}
-    String getPress(){return String(press / 1.3332239).substring(0, 3);}
+    String getHum(){return String(hum) + "%";}
+    String getPress(){return String(PRESS_SYSTEM ? press / 1.3332239 : press).substring(0, 3) + (PRESS_SYSTEM ? "ммРс" : "Pa");}
     String getAltitude(){return String(alt) + "m";};
 
 private:

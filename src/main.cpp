@@ -8,9 +8,6 @@
  * построение интерфейса осуществляется в файлах 'interface.*'
  *
  */
-#ifdef USE_FTP
-  #include "ftpSrv.h"
-#endif
 
 #ifdef WEATHER
 #include "weather.h"
@@ -43,9 +40,6 @@ void setup() {
   // Start EmbUI framework
   embui.begin();
   // weather.handle();
-  #ifdef USE_FTP
-      ftp_setup(); // запуск ftp-сервера
-  #endif
   matrix.init();
   sens.start();
   rtc.init();
@@ -76,7 +70,9 @@ void loop() {
   if (wait_handlers + 1000 > millis())
     return;
   wait_handlers = millis();
-  LOG(printf_P, PSTR("DIRTY %d \n"), embui.timeProcessor.isDirtyTime());
+  // LOG(printf_P, PSTR("FLAGS %d \n"), weather.getWeatherSett().weatherFlags);
+  // LOG(printf_P, PSTR("NAROD %d \n"), weather.getWeatherSett().displayNarodmon);
+  // LOG(printf_P, PSTR("TOMORRR %d \n"), weather.getWeatherSett().displayForecastTomorrow);
 
 
 }
