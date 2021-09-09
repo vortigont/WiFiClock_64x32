@@ -18,7 +18,7 @@ void Weather::init(){
 void Weather::handle(){
   if (!embui.sysData.wifi_sta) return;
     
-  if (millis() - timer >= UPDATE_WEATHER_TIME * TASK_MINUTE && !matrix.isNightMode()) {
+  if (millis() - timer >= UPDATE_WEATHER_TIME * TASK_MINUTE && !matrix.isNightMode() && !matrix.isStringPrint()) {
     timer +=  UPDATE_WEATHER_TIME * TASK_MINUTE;
     setUpdate();
     LOG(printf_P, PSTR("TIMER CHECK"));
@@ -61,9 +61,6 @@ if (!upd) {
     return;
 }
 
-int8_t Weather::getUpdate() {
-return upd;
-}
 
 //===============================================================================================================================//
 //                              ПОГОДА                                                

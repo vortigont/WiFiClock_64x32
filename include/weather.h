@@ -41,11 +41,11 @@ class Weather {
     String showTomorrow();
     void update();
     void setUpdate();
-    int8_t getUpdate();
+    int8_t getUpdate() {return upd;}
     bool getNarodmon();
     bool getTomorrow();
     bool getToday();
-    bool getUpdError(uint8_t err) {
+    bool getUpdError(const uint8_t &err) {
         if (!updError)
             return false;
 
