@@ -10,30 +10,39 @@
 
 
 //------------------------------ Подключаемое дополнительное оборудование
-
-#define BME280
-#define BMP280
-#define DHT22   // DHT 22  (AM2302)
-//#define MP3PLAYER                                           // Включить использование MP3 плеера (DF Player)
+#define SENSORS
+// #define MP3PLAYER                                           // Включить использование MP3 плеера (DF Player)
 #define WEATHER
 
 //------------------------------ Настройки LED Матрицы
-#define CLK  (D15)
-#define OE   (D33)
-#define LAT  (D32)
-#define AA   (D12)                
-#define BB   (D16)               
-#define CC   (D17)
-#define DD   (D18)
-#define matrix_width (64U)
-#define matrix_height (32U)
+#define STANDART_PINS                       // Закомментировать, если неправильно отображаются цвета (для matrix P2.5)
+#define MTX_CLK  15
+#define MTX_OE   33
+#define MTX_LAT  32
+#define MTX_A   12                
+#define MTX_B   16               
+#define MTX_C   17
+#define MTX_D   18
+#define MATRIX_WIDTH (64U)
+#define MATRIX_HEIGHT (32U)
+
+#define ANIM_INTERVAL (300U)
+#define NIGHTMODE_TIME (23U)
+#define MORNING_TIME (7U)
+#define SCROLL_INTERVAL (25)                    // Скорость бегущей строки
 
 #ifdef NARODMON
-#define UID (e50daf38ef50d7f78470a812e9b4b53c)              //для народмона
-#define API_KEY (V6THbfTfw467Q)                             //для народмона
+#define NARODMON_UID ("")              //для народмона
+#define NARODMON_API_KEY ("")                             //для народмона
 #endif
 
-#ifdef DHT22
+#define CITY ("Гомелe")
+#define WEATHERBIT_API_KEY ("")
+#define WEATHERBIT_LAT  ("")
+#define WEATHERBIT_LON  ("")
 
+#ifdef SENSORS
+#define SENSOR_TYPE ("BME280")    // BME280, BMP280, DHT22
+#define SEALEVELPRESSURE_HPA (1013.25)  // задаем высоту для датчика BME280
 #endif
 #endif

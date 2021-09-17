@@ -5,6 +5,9 @@
 
 #include "uistrings.h"   // non-localized text-strings
 
+// #include <ESP32-targz.h>
+// #define DEST_FS_USES_LITTLEFS
+
 /**
  * можно нарисовать свой собственный интефейс/обработчики с нуля, либо
  * подключить статический класс с готовыми формами для базовых системных натсроек и дополнить интерфейс.
@@ -154,8 +157,6 @@ void action_blink(Interface *interf, JsonObject *data){
   if (!data) return;  // здесь обрабатывает только данные
 
   SETPARAM(FPSTR(V_LED));  // save new LED state to the config
-
-  // set LED state to the new checkbox state
   digitalWrite(LED_BUILTIN, !(*data)[FPSTR(V_LED)].as<unsigned int>()); // write inversed signal for biuldin LED
   Serial.printf("LED: %d\n", (*data)[FPSTR(V_LED)].as<unsigned int>());
 }
