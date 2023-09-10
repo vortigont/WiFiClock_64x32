@@ -20,4 +20,8 @@ static uint8_t rgbpin[] = {25, 26, 27, 13, 14, 23};
 static uint8_t rgbpin[] = {25, 27, 26, 13, 23, 14}; 
 #endif
 
+#ifndef PRESS_SYSTEM
+#define PRESS_SYSTEM 0
+#endif
+
 #endif

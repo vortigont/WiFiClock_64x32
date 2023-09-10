@@ -16,7 +16,7 @@ void Weather::init(){
 }
 
 void Weather::handle(){
-  if (!embui.sysData.wifi_sta) return;
+  if (!(WiFi.getMode() & WIFI_MODE_STA)) return;
     
   if (millis() - timer >= UPDATE_WEATHER_TIME * TASK_MINUTE && !matrix.isNightMode() && !matrix.isStringPrint()) {
     timer +=  UPDATE_WEATHER_TIME * TASK_MINUTE;
@@ -46,8 +46,8 @@ Task *t = new Task(TASK_SECOND, TASK_FOREVER, []{
         break;
       }
       weather.upd--;
-      if (!weather.getUpdate()) TASK_RECYCLE;},
-    &ts, false);
+      if (!weather.getUpdate()) ts.currentTask().disable();},
+    &ts, false, nullptr, nullptr, true);
     t->enableDelayed();
   updError = 0;
 }
@@ -67,7 +67,7 @@ if (!upd) {
 //===============================================================================================================================//
 bool Weather::getToday() {
   if(weatherKey0=="" || !flags.displayForecastToday) return false;
-  if(!embui.sysData.wifi_sta) return false;
+  if(!(WiFi.getMode() & WIFI_MODE_STA)) return false;
   LOG(printf_P, PSTR("======== START GET WEATHER FROM WEATHERBIT.IO ========= \n"));
   
   String line;
@@ -155,7 +155,7 @@ String Weather::showToday(){
 // ============================================================================//
 bool Weather::getTomorrow() {
   if(weatherKey0=="" || !weather.getWeatherSett().displayForecastTomorrow) return false;
-  if(!embui.sysData.wifi_sta) return false;
+  if(!(WiFi.getMode() & WIFI_MODE_STA)) return false;
   LOG(printf_P, PSTR("======== START GET FORECAST FROM WEATHERBIT.IO ======== \n"));
    
   HTTPClient http;
@@ -240,7 +240,7 @@ String Weather::showTomorrow(){
 //=========================================================================================================
 // //                                  Народмониторинг
 bool Weather::getNarodmon() {
-  if(!embui.sysData.wifi_sta || !weather.getWeatherSett().displayNarodmon)  return false;
+  if(!(WiFi.getMode() & WIFI_MODE_STA) || !weather.getWeatherSett().displayNarodmon)  return false;
   LOG(printf_P, PSTR("Connection to narodmon.ru \n"));
   if (ESPclient.connect("http://narodmon.ru", 80)) {
   LOG(printf_P, PSTR("connection failed \n"));

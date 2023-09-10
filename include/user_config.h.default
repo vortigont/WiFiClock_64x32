@@ -3,14 +3,13 @@
 
 
 //------------------------------ Основные Настройки
-
-#define USE_FTP                                             // доступ к LittleFS по FTP, логин/пароль: esp8266
-#define OTA                                                 // Обновление по ОТА
 #define NARODMON
 
 
 //------------------------------ Подключаемое дополнительное оборудование
 #define SENSORS
+//#define PRESS_SYSTEM 0        // change to 1 to switch to mmHg, otherwise Pascales
+
 // #define MP3PLAYER                                           // Включить использование MP3 плеера (DF Player)
 #define WEATHER
 
@@ -30,16 +29,23 @@
 #define NIGHTMODE_TIME (23U)
 #define MORNING_TIME (7U)
 #define SCROLL_INTERVAL (25)                    // Скорость бегущей строки
+#define WH_ANIM_INTERVAL (25)                   // Скорость бегущей строки
 
 #ifdef NARODMON
 #define NARODMON_UID ("")              //для народмона
 #define NARODMON_API_KEY ("")                             //для народмона
+#define NARODMON_SENSOR_ID1     1
+#define NARODMON_SENSOR_ID2     2
+#define NARODMON_SENSOR_ID3     3
+#define NARODMON_SENSOR_ID4     4
+#define NARODMON_SENSOR_ID5     5
 #endif
 
 #define CITY ("Гомелe")
 #define WEATHERBIT_API_KEY ("")
 #define WEATHERBIT_LAT  ("")
 #define WEATHERBIT_LON  ("")
+#define UPDATE_WEATHER_TIME     30      // min
 
 #ifdef SENSORS
 #define SENSOR_TYPE ("BME280")    // BME280, BMP280, DHT22

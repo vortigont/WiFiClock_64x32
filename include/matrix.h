@@ -56,13 +56,13 @@ private:
     bool showWthTxt = true;
     bool switchHome;
     String getTime();
-    int getHour(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_hour;}
-    int getMin(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_min;}
-    int getSec(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_sec;}
-    int getMonth(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_mon + 1;}
-    int getMDay(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_mday;}
-    int getWDay(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_wday;}
-    int getYear(){const tm* t = localtime(embui.timeProcessor.now()); return t->tm_year + 1900;}
+    int getHour(){const tm* t = localtime(TimeProcessor::now()); return t->tm_hour;}
+    int getMin(){const tm* t = localtime(TimeProcessor::now()); return t->tm_min;}
+    int getSec(){const tm* t = localtime(TimeProcessor::now()); return t->tm_sec;}
+    int getMonth(){const tm* t = localtime(TimeProcessor::now()); return t->tm_mon + 1;}
+    int getMDay(){const tm* t = localtime(TimeProcessor::now()); return t->tm_mday;}
+    int getWDay(){const tm* t = localtime(TimeProcessor::now()); return t->tm_wday;}
+    int getYear(){const tm* t = localtime(TimeProcessor::now()); return t->tm_year + 1900;}
     String getMonthTxt(){ 
         String result;
         switch (getMonth()) {

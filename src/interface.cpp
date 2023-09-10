@@ -21,7 +21,7 @@
  * 
  */
 void create_parameters(){
-    LOG(println, F("UI: Creating application vars"));
+    LOG(println, "UI: Creating application vars");
 
    /**
     * регистрируем статические секции для web-интерфейса с системными настройками,
@@ -32,24 +32,24 @@ void create_parameters(){
     *  - базовые настройки MQTT
     *  - OTA обновление прошивки и образа файловой системы
     */
-    BasicUI::add_sections();
+    basicui::add_sections();
 
     /**
      * регистрируем свои переменные
      */
-    embui.var_create(FPSTR(V_LED), "1");    // LED default status is on
-    embui.var_create(FPSTR(V_VAR1), "");    // заводим пустую переменную по умолчанию
+    embui.var_create(V_LED, "1");    // LED default status is on
+    embui.var_create(V_VAR1, "");    // заводим пустую переменную по умолчанию
 
     /**
      * добавляем свои обрабочки на вывод UI-секций
      * и действий над данными
      */
-    embui.section_handle_add(FPSTR(T_DEMO), block_demopage);                // generate "Demo" UI section
+    embui.section_handle_add(T_DEMO, block_demopage);                // generate "Demo" UI section
 
     // обработчики
-    embui.section_handle_add(FPSTR(T_SET_DEMO), action_demopage);           // обработка данных из секции "Demo"
+    embui.section_handle_add(T_SET_DEMO, action_demopage);           // обработка данных из секции "Demo"
 
-    embui.section_handle_add(FPSTR(V_LED), action_blink);               // обработка рычажка светодиода
+    embui.section_handle_add(V_LED, action_blink);               // обработка рычажка светодиода
 
 };
 
@@ -64,14 +64,17 @@ void create_parameters(){
 void section_main_frame(Interface *interf, JsonObject *data){
   if (!interf) return;
 
-  interf->json_frame_interface(FPSTR(T_HEADLINE));  // HEADLINE for EmbUI project page
+  interf->json_frame_interface();
+
+  interf->json_section_manifest(T_HEADLINE, 0, "0.1");       // app name/version manifest
+  interf->json_section_end();
 
   block_menu(interf, data);                         // Строим UI блок с меню выбора других секций
   interf->json_frame_flush();
 
-  if(!embui.sysData.wifi_sta){                      // если контроллер не подключен к внешней AP, сразу открываем вкладку с настройками WiFi
-    LOG(println, F("UI: Opening network setup section"));
-    BasicUI::block_settings_netw(interf, data);
+  if(!(WiFi.getMode() & WIFI_MODE_STA)){                      // если контроллер не подключен к внешней AP, сразу открываем вкладку с настройками WiFi
+    LOG(println, "UI: Opening network setup section");
+    basicui::block_settings_netw(interf, data);
   } else {
     block_demopage(interf, data);                   // Строим блок с demo переключателями
   }
@@ -93,14 +96,14 @@ void block_menu(Interface *interf, JsonObject *data){
     /**
      * пункт меню - "демо"
      */
-    interf->option(FPSTR(T_DEMO), F("UI Demo"));
+    interf->option(T_DEMO, "UI Demo");
 
     /**
      * добавляем в меню пункт - настройки,
      * это автоматически даст доступ ко всем связанным секциям с интерфейсом для системных настроек
      * 
      */
-    BasicUI::opt_setup(interf, data);       // пункт меню "настройки"
+    basicui::opt_setup(interf, data);       // пункт меню "настройки"
     interf->json_section_end();
 }
 
@@ -113,20 +116,20 @@ void block_demopage(Interface *interf, JsonObject *data){
     interf->json_frame_interface();
 
     // Headline
-    // параметр FPSTR(T_SET_DEMO) определяет зарегистрированный обработчик данных для секции
-    interf->json_section_main(FPSTR(T_SET_DEMO), F("Some demo controls"));
-    interf->comment(F("Комментарий: набор контролов для демонстрации"));     // комментарий-описание секции
+    // параметр T_SET_DEMO определяет зарегистрированный обработчик данных для секции
+    interf->json_section_main(T_SET_DEMO, "Some demo controls");
+    interf->comment("Комментарий: набор контролов для демонстрации");     // комментарий-описание секции
 
     // переключатель, связанный со светодиодом. Изменяется синхронно 
-    interf->checkbox(FPSTR(V_LED), F("Onboard LED"), true);
+    interf->checkbox(V_LED, embui.paramVariant(V_LED), "Onboard LED", true);
 
-    interf->text(FPSTR(V_VAR1), F("текстовое поле"));                                 // текстовое поле со значением переменной из конфигурации
-    interf->text(FPSTR(V_VAR2), F("some default val"), F("Второе текстовое поле"), false);   // текстовое поле со значением "по-умолчанию"
+//    interf->text(V_VAR1, embui.paramVariant(V_VAR1), "текстовое поле");                                 // текстовое поле со значением переменной из конфигурации
+//    interf->text(V_VAR2, embui.paramVariant(V_VAR2), "some default val", "Второе текстовое поле");   // текстовое поле со значением "по-умолчанию"
     /*  кнопка отправки данных секции на обработку
-     *  первый параметр FPSTR(T_DEMO) определяет какая секция откроется
+     *  первый параметр T_DEMO определяет какая секция откроется
      *  после обработки отправленных данных
      */ 
-    // interf->button_submit(FPSTR(T_SET_DEMO), FPSTR(T_DICT[TD::D_Send]), FPSTR(P_GRAY));
+    // interf->button_submit(T_SET_DEMO, T_DICT[TD::D_Send], P_GRAY);
     interf->json_section_end();
     interf->json_frame_flush();
 }
@@ -134,19 +137,19 @@ void block_demopage(Interface *interf, JsonObject *data){
 void action_demopage(Interface *interf, JsonObject *data){
     if (!data) return;
 
-    LOG(println, F("porcessig section demo"));
+    LOG(println, "porcessig section demo");
 
     // сохраняем значение 1-й переменной в конфиг фреймворка
-    SETPARAM(FPSTR(V_VAR1));
+    SETPARAM(V_VAR1);
 
     // выводим значение 1-й переменной в serial
-    const char *text = (*data)[FPSTR(V_VAR1)];
+    const char *text = (*data)[V_VAR1];
     Serial.printf_P(PSTR("Varialble_1 value:%s\n"), text );
 
     // берем указатель на 2-ю переменную
-    text = (*data)[FPSTR(V_VAR2)];
+    text = (*data)[V_VAR2];
     // или так:
-    // String var2 = (*data)[FPSTR(V_VAR2)];
+    // String var2 = (*data)[V_VAR2];
     // выводим значение 2-й переменной в serial
     Serial.printf_P(PSTR("Varialble_2 value:%s\n"), text);
 
@@ -156,14 +159,14 @@ void action_demopage(Interface *interf, JsonObject *data){
 void action_blink(Interface *interf, JsonObject *data){
   if (!data) return;  // здесь обрабатывает только данные
 
-  SETPARAM(FPSTR(V_LED));  // save new LED state to the config
-  digitalWrite(LED_BUILTIN, !(*data)[FPSTR(V_LED)].as<unsigned int>()); // write inversed signal for biuldin LED
-  Serial.printf("LED: %d\n", (*data)[FPSTR(V_LED)].as<unsigned int>());
+  SETPARAM(V_LED);  // save new LED state to the config
+  digitalWrite(LED_BUILTIN, !(*data)[V_LED].as<unsigned int>()); // write inversed signal for biuldin LED
+  Serial.printf("LED: %d\n", (*data)[V_LED].as<unsigned int>());
 }
 
 /**
  * обработчик статуса (периодического опроса контроллера веб-приложением)
  */
 void pubCallback(Interface *interf){
-    BasicUI::embuistatus(interf);
+    basicui::embuistatus(interf);
 }

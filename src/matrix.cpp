@@ -93,7 +93,7 @@ void MTX::start() {
   // setFont();
   // setTextColor(myCYAN);
   if (!i) {
-    if (!embui.sysData.wifi_sta && millis() < 5000){
+    if (!(WiFi.getMode() & WIFI_MODE_STA) && millis() < 5000){
 
       drawRGBBitmap(0, 0, image_wifi, 64, 32);
       switch (l) {
@@ -130,14 +130,14 @@ void MTX::start() {
       fillScreen(0);
       setFont();
       setCursor(13, 5);
-      setTextColor(embui.sysData.wifi_sta ? myGREEN : myRED);
-      println(embui.sysData.wifi_sta ? "WiFi OK" : "WiFi AP");
+      setTextColor((WiFi.getMode() & WIFI_MODE_STA) ? myGREEN : myRED);
+      println((WiFi.getMode() & WIFI_MODE_STA) ? "WiFi OK" : "WiFi AP");
       uint8_t x;
       x = (62 - (WiFi.localIP().toString().length() - 3) * 5) / 2;   // Расчитываем длину айпи и делаем вывод примерно по центру оси Х (+- пару пикселей, т.к. у шрифта цифры разной ширины)
-      setCursor((embui.sysData.wifi_sta ? x : 12), 18);
+      setCursor(((WiFi.getMode() & WIFI_MODE_STA) ? x : 12), 18);
       setFont(&TomThumb);
       setTextColor(myBLUE);
-      println(embui.sysData.wifi_sta ? WiFi.localIP().toString() : "192.168.4.1");
+      println((WiFi.getMode() & WIFI_MODE_STA) ? WiFi.localIP().toString() : "192.168.4.1");
       if (!showIp) showIp = millis();
     }
   }
@@ -206,7 +206,7 @@ void MTX::start() {
 // Функция для времени в нужном формате
 String MTX::getTime(){
 
-  const tm* t = localtime(embui.timeProcessor.now());  // Определяем для вывода времени 
+  const tm* t = localtime(TimeProcessor::now());  // Определяем для вывода времени 
   static char dispTime[5]; 
   // if (embui.timeProcessor.isDirtyTime()) sprintf (dispTime, (showPoints ? "--:--" : "-- --"));
   sprintf (dispTime, (showPoints ? "%02d:%02d" : "%02d %02d"), t->tm_hour, t->tm_min);
@@ -388,7 +388,7 @@ void MTX::getClock(){
   setTextSize(1);
   print(getTime());
 
-  if (!embui.sysData.wifi_sta) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
+  if (!(WiFi.getMode() & WIFI_MODE_STA)) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
 
 }
 
@@ -534,12 +534,12 @@ bool MTX::fillStringManual(const char* text,  bool stopText, bool isInverse, int
   }
 
     setFont();
-    if (!embui.sysData.wifi_sta) fillRect(9, 22, 64, 12, myBLACK);
+    if (!(WiFi.getMode() & WIFI_MODE_STA)) fillRect(9, 22, 64, 12, myBLACK);
     else fillRect(0, 22, 64, 12, myBLACK);
     setCursor(offset, 24);
     // setFont(&Heebo7pt8b);
     print(text);
-    if (!embui.sysData.wifi_sta) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
+    if (!(WiFi.getMode() & WIFI_MODE_STA)) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
     swapBuffers(true);
   if(!stopText) {
     offset--;   
@@ -561,10 +561,10 @@ bool MTX::fillStringManual(const char* text,  bool stopText, bool isInverse, int
 
 
 String &MTX::prepareText(String &source){
-  source.replace(F("%TM"), embui.timeProcessor.getFormattedShortTime());
+  source.replace(F("%TM"), TimeProcessor::getInstance().getFormattedShortTime());
   source.replace(F("%IP"), WiFi.localIP().toString());
   // source.replace(F("%EN"), effects.getEffectName());
-  const tm *tm = localtime(embui.timeProcessor.now());
+  const tm *tm = localtime(TimeProcessor::now());
   char buffer[11]; //"xx.xx.xxxx"
   sprintf_P(buffer,PSTR("%02d.%02d.%04d"),tm->tm_mday,tm->tm_mon+1,tm->tm_year+TM_BASE_YEAR);
   source.replace(F("%DT"), buffer);
@@ -590,7 +590,7 @@ void MTX::getNightMode(){
   setFont(&FreeSansBold9pt7b);
   setTextColor(Color333(0,0,2));
   println(getTime());
-  if (!embui.sysData.wifi_sta) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
+  if (!(WiFi.getMode() & WIFI_MODE_STA)) drawRGBBitmap(0, 24, image_wifi_mini, 9, 8);
 
   if (MORNING_TIME == getHour()) showMorning = true;
 }

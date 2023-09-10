@@ -42,8 +42,10 @@ void setup() {
   // weather.handle();
   matrix.init();
   sens.start();
+#ifdef RTC
   rtc.init();
   rtcUpd.setInterval(24*3600*1000);
+#endif
   weather.init();
   // xTaskCreatePinnedToCore(
   //                   TaskEmbCode,   /* Функция задачи */
@@ -64,8 +66,10 @@ void loop() {
   weather.handle();
 
 
+#ifdef RTC
   if (rtcUpd.isReady())
     rtc.updateRtcTime();
+#endif
   static unsigned long wait_handlers;
   if (wait_handlers + 1000 > millis())
     return;
